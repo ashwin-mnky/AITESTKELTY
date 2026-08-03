@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -8,7 +7,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const client = new Anthropic();
 
 // Load knowledge base
 const knowledgeBase = JSON.parse(
@@ -17,42 +15,6 @@ const knowledgeBase = JSON.parse(
 
 app.use(express.json());
 app.use(express.static(__dirname));
-
-// Main endpoint: Generate match report
-app.post("/api/generate-report", async (req, res) => {
-  try {
-    const { prompt, matchInfo } = req.body;
-
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
-    }
-
-    const response = await client.messages.create({
-      model: "claude-opus-4-1",
-      max_tokens: 1024,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    });
-
-    const report =
-      response.content[0].type === "text" ? response.content[0].text : "";
-
-    res.json({
-      report,
-      matchInfo,
-    });
-  } catch (error) {
-    console.error("Error generating report:", error);
-    res.status(500).json({
-      error: "Failed to generate report",
-      details: error.message,
-    });
-  }
-});
 
 // Q&A endpoint: Answer fan questions from knowledge base
 app.post("/api/ask-question", async (req, res) => {
@@ -124,19 +86,13 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Route to serve fan assistant
-app.get("/assistant", (req, res) => {
-  res.sendFile(path.join(__dirname, "fan_assistant.html"));
-});
-
-// Route to serve match report generator
+// Serve fan assistant
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "match_report_generator.html"));
+  res.sendFile(path.join(__dirname, "fan_assistant.html"));
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\n⚽ Kelty Hearts AI Prototype running on port ${PORT}\n`);
-  console.log(`  📝 Match Report Generator: http://localhost:${PORT}/`);
-  console.log(`  💬 Fan Q&A Assistant: http://localhost:${PORT}/assistant\n`);
+  console.log(`\n💬 Kelty Hearts Fan Q&A Assistant running on port ${PORT}`);
+  console.log(`   Open http://localhost:${PORT} in your browser\n`);
 });
