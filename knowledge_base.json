@@ -1,0 +1,61 @@
+{
+  "faqs": [
+    {
+      "question": "when is the next home game",
+      "keywords": ["next", "home", "game", "match", "fixture", "when"],
+      "answer": "Our next home match is on Saturday, August 10th vs Annan Athletic at New Central Park. Kick-off is 3:00 PM. Get your tickets now!"
+    },
+    {
+      "question": "where do i buy tickets",
+      "keywords": ["buy", "tickets", "ticket", "purchase", "price"],
+      "answer": "Tickets are available online at www.keltyhearts.co.uk/tickets or at the gate on match day. Adult tickets are £12, concessions £8, under-16s free with an adult."
+    },
+    {
+      "question": "what is the stadium address",
+      "keywords": ["address", "stadium", "ground", "venue", "location", "where"],
+      "answer": "Kelty Hearts plays at New Central Park, Kelty, Fife, KY4 0FB. It's easily accessible by car or bus. Parking is free."
+    },
+    {
+      "question": "what time does the match kick off",
+      "keywords": ["time", "kick-off", "kickoff", "start", "when"],
+      "answer": "Our home matches typically kick off at 3:00 PM on Saturdays. Midweek fixtures vary—check the fixtures page for exact times."
+    },
+    {
+      "question": "can i bring my kids",
+      "keywords": ["kids", "children", "family", "under-16", "young"],
+      "answer": "Absolutely! We're a family-friendly club. Kids under 16 get in free with a paying adult. We have family spaces in the ground."
+    },
+    {
+      "question": "what league are we in",
+      "keywords": ["league", "division", "tier"],
+      "answer": "Kelty Hearts FC plays in the Scottish League Two, the fourth tier of Scottish football. We're proud to represent Fife!"
+    },
+    {
+      "question": "how do i become a member",
+      "keywords": ["member", "membership", "join", "supporter", "club"],
+      "answer": "You can join our supporters club! Membership costs £30/year and includes a newsletter, special events, and priority ticket access. Sign up at www.keltyhearts.co.uk/join"
+    },
+    {
+      "question": "what food is available",
+      "keywords": ["food", "eat", "drink", "refreshment", "cafe", "pie"],
+      "answer": "We have a cafe serving hot pies, burgers, hot dogs, and drinks. There's also a bar area. We aim to have something for everyone!"
+    },
+    {
+      "question": "how do i get there by public transport",
+      "keywords": ["bus", "train", "transport", "public", "how to get"],
+      "answer": "The ground is served by local buses. The nearest train station is Kelty Station, about 10 minutes walk. Check Traveline Scotland for current routes."
+    },
+    {
+      "question": "can i book a group visit",
+      "keywords": ["group", "school", "coach", "tour", "visit"],
+      "answer": "Yes! Groups of 10+ get a discount. Contact our office at info@keltyhearts.co.uk or call 01383 XXXXXX to arrange."
+    }
+  ],
+  "general_info": {
+    "club_name": "Kelty Hearts FC",
+    "stadium": "New Central Park",
+    "league": "Scottish League Two",
+    "email": "info@keltyhearts.co.uk",
+    "website": "www.keltyhearts.co.uk"
+  }
+}

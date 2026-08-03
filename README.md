@@ -32,9 +32,38 @@ A ~150-250 word draft report in a community-first tone (like the club's own voic
 6. The AI extracts match facts and writes a draft
 7. Copy the report, paste it into your CMS/email, and edit as needed
 
-### Idea #2: Mini AI Assistant (Q&A)
+### Idea #2: Mini AI Assistant (Q&A) ✅ Complete
 
-Coming next (once #1 is tested and working).
+**The Problem:** Fans ask the same questions repeatedly (when's the next match, where to buy tickets, can I bring kids?).
+
+**The Solution:** A simple chat-style Q&A tool. Fans type a question in plain English, and the assistant answers from a knowledge base of FAQs about the club.
+
+**What It Knows:**
+- Match fixtures and kick-off times
+- Ticket prices and where to buy
+- Stadium location and how to get there
+- Membership info
+- Family-friendly policies
+- Food/refreshments
+- Group bookings
+
+**How It Works:**
+1. Fan asks: "When's the next home game?"
+2. The tool searches the knowledge base for matching keywords
+3. It returns the relevant answer in a friendly chat format
+4. No AI generation needed—it just matches questions to pre-written answers
+
+**How to Use:**
+1. Run the server (`npm start`)
+2. Open http://localhost:3000/assistant in your browser
+3. Click a suggested question or type your own
+4. Get instant answers
+
+**Why This Approach?**
+- Super fast (no external API calls)
+- 100% accurate (no AI hallucinations)
+- Easy to update (just edit knowledge_base.json)
+- Offline-capable (works without internet once loaded)
 
 ## Technical Details (Plain Language)
 
@@ -64,10 +93,11 @@ npm install
 npm start
 
 # 3. Open in browser
-# Go to http://localhost:3000
+# Match Report Generator: http://localhost:3000/
+# Fan Q&A Assistant:      http://localhost:3000/assistant
 ```
 
-The server runs on port 3000. You'll see a form where you paste BBC content.
+The server runs on port 3000 and serves both tools.
 
 ### Development Mode
 ```bash
@@ -89,19 +119,54 @@ npm run dev
 
 ## Project Files
 
-- `match_report_generator.html` — The form/website you see in the browser
-- `server.js` — The backend that calls Claude and processes requests
-- `package.json` — Lists dependencies and start commands
+**Match Report Generator (Idea #1):**
+- `match_report_generator.html` — The form where you paste BBC content
 - `sample_bbc_content.txt` — Example BBC content for testing
+
+**Fan Q&A Assistant (Idea #2):**
+- `fan_assistant.html` — The chat interface for fans
+- `knowledge_base.json` — FAQ database (edit this to add/update questions)
+
+**Backend:**
+- `server.js` — Handles both tools (report generation + Q&A)
+- `package.json` — Dependencies and start commands
 - `README.md` — This file
+
+## Customizing the Q&A Tool
+
+The knowledge base is in `knowledge_base.json`. To add or change questions:
+
+1. Open `knowledge_base.json` in a text editor
+2. Add a new FAQ object to the `faqs` array:
+```json
+{
+  "question": "what is your example question",
+  "keywords": ["example", "question", "words", "to", "match"],
+  "answer": "This is the answer that will be shown to fans."
+}
+```
+3. Save the file
+4. Restart the server (`npm start`)
+
+**Tips:**
+- Keep keywords lowercase and relevant
+- More keywords = better matching
+- The tool looks for keyword matches first, then word overlap
+- If a question doesn't match well enough, it shows the fallback message
 
 ## What Happens Next
 
-Once this is working:
-1. Test it with a real BBC match from this weekend (Scottish lower leagues)
-2. Show it to Kelty Hearts staff to get feedback on tone/format
-3. If approved, build **Idea #2: Mini AI Assistant** (Q&A tool)
-4. Both together form the Week 5 demo
+**Week 5 Demo:**
+1. ✅ Match Report Generator — built and tested
+2. ✅ Fan Q&A Assistant — built and tested
+3. Show both to Kelty Hearts staff to get feedback
+4. Gather requirements for scaling or improving either tool
+
+**Future Options (if approved):**
+- Connect the Q&A to a real FAQ database or CMS
+- Add more sophisticated matching (semantic search with AI)
+- Link reports directly to the club website
+- Set up automated match report posting
 
 ## Questions?
 
