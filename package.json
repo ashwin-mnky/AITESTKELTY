@@ -1,0 +1,23 @@
+{
+  "name": "kelty-hearts-ai-prototype",
+  "version": "0.1.0",
+  "description": "AI prototype for Kelty Hearts FC - match reports and fan Q&A",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "kelty-hearts",
+    "ai",
+    "match-report",
+    "football"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
+    "express": "^4.18.2"
+  }
+}

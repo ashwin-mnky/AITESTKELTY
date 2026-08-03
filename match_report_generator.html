@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelty Hearts Match Report Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-copy {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-copy:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-clear {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #ee5a5a;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f0f0f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .output-section {
+            display: none;
+        }
+
+        .output-section.visible {
+            display: block;
+        }
+
+        .match-metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .meta-item {
+            font-size: 14px;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #666;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        #reportOutput {
+            min-height: 200px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #ff6b6b;
+            color: #c92a2a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f5ff;
+            border-left: 4px solid #667eea;
+            color: #0c5aa0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚽ Match Report Generator</h1>
+            <p>Kelty Hearts FC AI Prototype</p>
+        </header>
+
+        <div class="card">
+            <div class="info-box">
+                <strong>How to use:</strong> Copy the HTML/text from a BBC Sport live match page and paste it below. The AI will extract match details and generate a draft report for your review.
+            </div>
+
+            <div class="error" id="errorBox"></div>
+
+            <form id="reportForm">
+                <div class="form-section">
+                    <label for="matchData">BBC Sport Page Content (paste here)</label>
+                    <textarea id="matchData" placeholder="Paste the HTML or text from a BBC match page..." required></textarea>
+                </div>
+
+                <div class="form-section">
+                    <label for="clubName">Club Name (default: Kelty Hearts FC)</label>
+                    <input type="text" id="clubName" value="Kelty Hearts FC" placeholder="Kelty Hearts FC">
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-generate">Generate Report</button>
+                    <button type="button" class="btn-clear" onclick="clearForm()">Clear</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating match report...</p>
+                </div>
+            </form>
+        </div>
+
+        <div class="card output-section" id="outputSection">
+            <h2>Generated Match Report</h2>
+
+            <div class="match-metadata" id="metadata"></div>
+
+            <div id="reportOutput"></div>
+
+            <div class="button-group" style="margin-top: 20px;">
+                <button class="btn-copy" onclick="copyToClipboard()">Copy Report</button>
+                <button class="btn-clear" onclick="resetOutput()">Generate Another</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await generateReport();
+        });
+
+        async function generateReport() {
+            const matchData = document.getElementById('matchData').value.trim();
+            const clubName = document.getElementById('clubName').value.trim();
+            const errorBox = document.getElementById('errorBox');
+            const loading = document.getElementById('loading');
+
+            if (!matchData) {
+                showError('Please paste the BBC Sport page content');
+                return;
+            }
+
+            errorBox.classList.remove('show');
+            loading.classList.add('active');
+
+            try {
+                // Extract match information from BBC page content
+                const matchInfo = extractMatchInfo(matchData, clubName);
+
+                // Generate report using Claude
+                const report = await generateMatchReport(matchInfo, clubName);
+
+                // Display results
+                displayReport(matchInfo, report);
+                loading.classList.remove('active');
+
+            } catch (error) {
+                loading.classList.remove('active');
+                showError(error.message);
+            }
+        }
+
+        function extractMatchInfo(pageContent, clubName) {
+            // Extract key match information from BBC page HTML/text
+            const info = {
+                opponent: '',
+                score: '',
+                homeTeam: clubName,
+                awayTeam: '',
+                scorers: [],
+                cards: [],
+                substitutions: [],
+                venue: 'Unknown'
+            };
+
+            // Look for score pattern (e.g., "2-1", "Kelty Hearts 2-1 Opponent")
+            const scoreMatch = pageContent.match(/(\d+)\s*[-–]\s*(\d+)/);
+            if (scoreMatch) {
+                info.score = `${scoreMatch[1]}-${scoreMatch[2]}`;
+                info.homeScore = scoreMatch[1];
+                info.awayScore = scoreMatch[2];
+            }
+
+            // Try to find opponent name
+            const opponentPatterns = [
+                new RegExp(`${clubName}.*?vs\\.?\\s+([\\w\\s]+?)(?:\\s+\\d+[-–]\\d+|$)`, 'i'),
+                new RegExp(`vs\\.?\\s+([\\w\\s]+?)(?:\\s+\\d+[-–]\\d+|$)`, 'i'),
+                new RegExp(`([\\w\\s]+?)\\s+\\d+[-–]\\d+\\s+${clubName}`, 'i')
+            ];
+
+            for (const pattern of opponentPatterns) {
+                const match = pageContent.match(pattern);
+                if (match && match[1]) {
+                    info.opponent = match[1].trim();
+                    break;
+                }
+            }
+
+            // Extract goal scorers (look for "name minute" patterns)
+            const scorerPattern = /([A-Z][a-z]+\s+[A-Z][a-z]+)\s*(?:\'|')(\d+)/g;
+            let scorerMatch;
+            while ((scorerMatch = scorerPattern.exec(pageContent)) !== null) {
+                info.scorers.push({
+                    name: scorerMatch[1].trim(),
+                    minute: scorerMatch[2]
+                });
+            }
+
+            // Extract cards (yellow/red)
+            const cardPattern = /(?:Yellow|Red)\s+Card.*?([A-Z][a-z]+\s+[A-Z][a-z]+).*?(\d+)/gi;
+            let cardMatch;
+            while ((cardMatch = cardPattern.exec(pageContent)) !== null) {
+                info.cards.push({
+                    type: cardMatch[0].includes('Red') ? 'Red' : 'Yellow',
+                    player: cardMatch[1].trim(),
+                    minute: cardMatch[2]
+                });
+            }
+
+            // Check if home or away
+            if (pageContent.includes('Away') || pageContent.includes('away')) {
+                info.venue = 'Away';
+                [info.homeTeam, info.awayTeam] = [info.opponent || 'Opponent', clubName];
+            } else {
+                info.venue = 'Home';
+                info.awayTeam = info.opponent || 'Opponent';
+            }
+
+            return info;
+        }
+
+        async function generateMatchReport(matchInfo, clubName) {
+            // Prepare the prompt for Claude
+            const scorersText = matchInfo.scorers.length > 0
+                ? matchInfo.scorers.map(s => `${s.name} (${s.minute}')`).join(', ')
+                : 'None recorded';
+
+            const cardsText = matchInfo.cards.length > 0
+                ? matchInfo.cards.map(c => `${c.player} - ${c.type} card (${c.minute}')`).join(', ')
+                : 'None';
+
+            const prompt = `You are a warm, community-focused sports writer for Kelty Hearts FC, a Scottish League Two club. Write a draft match report based on these facts:
+
+Opponent: ${matchInfo.opponent || 'Unknown'}
+Final Score: ${matchInfo.score || 'Not found'}
+Venue: ${matchInfo.venue}
+Goal Scorers: ${scorersText}
+Cards: ${cardsText}
+
+Write a 150-250 word match report in a friendly, community-first tone. Focus on the key events and how the team performed. Write as if for the club's own website or newsletter—warm and inclusive, not corporate. Start directly with the match summary, no preamble.`;
+
+            try {
+                // Call the backend API
+                const response = await fetch('/api/generate-report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        matchInfo: matchInfo
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data.report;
+
+            } catch (error) {
+                throw new Error(`Failed to generate report: ${error.message}`);
+            }
+        }
+
+        function displayReport(matchInfo, report) {
+            const outputSection = document.getElementById('outputSection');
+            const metadata = document.getElementById('metadata');
+            const reportOutput = document.getElementById('reportOutput');
+
+            // Display match metadata
+            metadata.innerHTML = `
+                <div class="meta-item">
+                    <span class="meta-label">Opponent</span>
+                    <span class="meta-value">${matchInfo.opponent || 'Unknown'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Score</span>
+                    <span class="meta-value">${matchInfo.score || 'Not found'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Venue</span>
+                    <span class="meta-value">${matchInfo.venue}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Goal Scorers</span>
+                    <span class="meta-value">${matchInfo.scorers.length}</span>
+                </div>
+            `;
+
+            // Display report
+            reportOutput.textContent = report;
+
+            // Show output section
+            outputSection.classList.add('visible');
+
+            // Scroll to output
+            outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function clearForm() {
+            document.getElementById('reportForm').reset();
+        }
+
+        function resetOutput() {
+            document.getElementById('outputSection').classList.remove('visible');
+            document.getElementById('matchData').focus();
+        }
+
+        function copyToClipboard() {
+            const report = document.getElementById('reportOutput').textContent;
+            navigator.clipboard.writeText(report).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = message;
+            errorBox.classList.add('show');
+        }
+    </script>
+</body>
+</html>
