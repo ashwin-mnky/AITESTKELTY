@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelty Hearts — Live Match Social Automation</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+  }
+  .container { max-width: 1000px; margin: 0 auto; }
+  header { text-align:center; color:white; margin-bottom: 20px; }
+  header h1 { font-size: 2em; margin-bottom: 6px; }
+  header p { opacity: .9; }
+
+  .controls {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .score-badge {
+    font-weight: 700;
+    font-size: 1.2em;
+    background:#f0f0ff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color:#4c3fa0;
+  }
+  button.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color:white;
+    border:none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.primary:disabled { opacity:.5; cursor:not-allowed; }
+  .status-pill {
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #eee;
+    color: #666;
+  }
+  .status-pill.live {
+    background: #ffe3e3;
+    color: #c92a2a;
+  }
+  .status-pill.live::before {
+    content: "●";
+    margin-right: 5px;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+  .feed {
+    display:flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .event-card {
+    background:white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: slideIn .4s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform: translateY(12px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+  .event-header {
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .minute-badge {
+    background:#333;
+    color:white;
+    font-weight:700;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .event-type {
+    font-size: 13px;
+    font-weight:600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color:#888;
+  }
+  .event-text {
+    font-size: 15px;
+    margin-bottom: 16px;
+    color:#222;
+  }
+
+  .posts-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .post-box {
+    background:#f9f9fb;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .post-platform {
+    font-size: 12px;
+    font-weight:700;
+    text-transform: uppercase;
+    color: #667eea;
+    margin-bottom: 6px;
+  }
+  .post-text {
+    font-size: 13.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    color:#333;
+  }
+  .generating {
+    color:#999;
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  .approve-row {
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .approve-btn {
+    background:#2f9e44;
+    color:white;
+    border:none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .approve-btn:hover { background:#268a3b; }
+  .approved-tag {
+    background:#d3f9d8;
+    color:#2b8a3e;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight:600;
+  }
+
+  .empty-state {
+    text-align:center;
+    color: rgba(255,255,255,0.85);
+    padding: 60px 20px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚽ Kelty Hearts — Live Match Social Automation</h1>
+    <p>Prototype: simulated live feed → auto-generated social posts → human approval</p>
+  </header>
+
+  <div class="controls">
+    <div class="score-badge" id="scoreBadge">Kelty Hearts 0-0 Stirling Albion</div>
+    <div class="status-pill" id="statusPill">Not started</div>
+    <button class="primary" id="startBtn" onclick="startSimulation()">▶ Start Live Match Simulation</button>
+  </div>
+
+  <div class="feed" id="feed"></div>
+  <div class="empty-state" id="emptyState">Click "Start Live Match Simulation" to begin. Events will appear here as they happen — just like a real match feed.</div>
+</div>
+
+<script>
+let pollTimer = null;
+let seenEvents = new Set();
+let homeScore = 0, awayScore = 0;
+
+async function startSimulation() {
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('statusPill').textContent = 'LIVE';
+  document.getElementById('statusPill').classList.add('live');
+  seenEvents.clear();
+  homeScore = 0; awayScore = 0;
+  updateScore();
+  document.getElementById('feed').innerHTML = '';
+
+  await fetch('/api/start', { method: 'POST' });
+
+  pollTimer = setInterval(pollFeed, 1500);
+}
+
+function updateScore() {
+  document.getElementById('scoreBadge').textContent = `Kelty Hearts ${homeScore}-${awayScore} Stirling Albion`;
+}
+
+async function pollFeed() {
+  const res = await fetch('/api/live-feed');
+  const data = await res.json();
+
+  for (const event of data.events) {
+    if (seenEvents.has(event.minute + event.type + (event.player || ''))) continue;
+    seenEvents.add(event.minute + event.type + (event.player || ''));
+    addEventCard(event);
+  }
+
+  if (data.finished) {
+    clearInterval(pollTimer);
+    document.getElementById('statusPill').textContent = 'FULL TIME';
+    document.getElementById('statusPill').classList.remove('live');
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('startBtn').textContent = '▶ Run Simulation Again';
+  }
+}
+
+function addEventCard(event) {
+  if (event.type === 'goal') {
+    if (event.team === 'Kelty Hearts') homeScore++; else awayScore++;
+    updateScore();
+  }
+
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.innerHTML = `
+    <div class="event-header">
+      <div class="minute-badge">${event.minute}'</div>
+      <div class="event-type">${event.type}</div>
+    </div>
+    <div class="event-text">${event.text}</div>
+    <div class="posts-grid" id="posts-${cssId(event)}">
+      <div class="generating">Generating social posts…</div>
+    </div>
+  `;
+  document.getElementById('feed').prepend(card);
+
+  generatePosts(event);
+}
+
+function cssId(event) {
+  return (event.minute + event.type + (event.player || '')).replace(/[^a-zA-Z0-9]/g, '');
+}
+
+async function generatePosts(event) {
+  const id = cssId(event);
+  try {
+    const res = await fetch('/api/generate-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event })
+    });
+    const data = await res.json();
+    renderPosts(id, data.posts);
+  } catch (err) {
+    document.getElementById('posts-' + id).innerHTML = `<div class="generating">Failed to generate posts.</div>`;
+  }
+}
+
+function renderPosts(id, posts) {
+  const container = document.getElementById('posts-' + id);
+  if (!container) return;
+
+  const platforms = [
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'x', label: 'X / Twitter' },
+    { key: 'facebook', label: 'Facebook' }
+  ];
+
+  container.innerHTML = platforms.map(p => `
+    <div class="post-box">
+      <div class="post-platform">${p.label}</div>
+      <div class="post-text">${(posts[p.key] || '').replace(/</g,'&lt;')}</div>
+    </div>
+  `).join('');
+
+  const approveRow = document.createElement('div');
+  approveRow.className = 'approve-row';
+  approveRow.innerHTML = `<button class="approve-btn" onclick="approve(this)">Approve & Send</button>`;
+  container.parentElement.appendChild(approveRow);
+}
+
+function approve(btn) {
+  btn.parentElement.innerHTML = `<span class="approved-tag">✓ Approved — ready to post</span>`;
+}
+</script>
+</body>
+</html>

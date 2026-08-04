@@ -1,45 +1,77 @@
-# Kelty Hearts FC — Live Match Social Media Automation
+# Kelty Hearts FC — Live Match Social Media Automation (Prototype)
 
-Automated system that fetches live match data and generates social media posts for Instagram, X (Twitter), and Facebook.
+A working sample that simulates a live match feed and automatically generates
+social media posts (Instagram, X, Facebook) for every goal, card, and
+substitution — with a human "Approve" step before anything goes out.
+
+## What This Demonstrates
+
+Since a truly live, free data feed for Scottish League Two isn't available
+(see notes below), this prototype **replays a real-shaped Kelty Hearts match**
+event-by-event on a simulated clock, exactly like a live feed would arrive.
+This proves the automation pipeline end to end:
+
+```
+Match event happens → detected automatically → AI drafts 3 social posts → human clicks Approve
+```
+
+Swap the simulated feed for a paid live-data API later and the rest of the
+pipeline (post generation, approval dashboard) doesn't need to change.
 
 ## How It Works
 
-1. **Fetch live match data** from FootballData.org API
-2. **Detect changes** (goals, substitutions, cards)
-3. **Auto-generate posts** in 3 formats:
-   - Instagram caption (engaging, emojis, hashtags)
-   - X/Twitter post (short, punchy)
-   - Facebook post (community-focused)
-4. **User reviews & approves** each post
-5. **Posts automatically** (when integrated with social media APIs)
+1. Click **"Start Live Match Simulation"**
+2. The match plays out automatically (90 minutes compressed into ~3 minutes)
+3. As each event "happens" (kickoff, goals, cards, subs, full time), it appears
+   in the live feed
+4. The system immediately generates 3 draft posts for that event:
+   - **Instagram** — emoji-heavy, hashtags
+   - **X/Twitter** — short and punchy
+   - **Facebook** — community-focused, slightly longer
+5. Click **"Approve & Send"** on any post to mark it ready to publish
 
-## Setup
+## Setup & Running
 
 ### Prerequisites
 - Node.js (v16+)
-- FootballData.org API key: https://www.football-data.org/client/register
-- Claude API key: https://console.anthropic.com
+- An Anthropic API key with available credits (for AI-generated posts)
 
-### Installation
+### Steps
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Set environment variables
-export FOOTBALL_DATA_API_KEY='your-key-here'
-export ANTHROPIC_API_KEY='your-key-here'
-
-# 3. Start the server
+export ANTHROPIC_API_KEY='sk-ant-...'
 npm start
+# Open http://localhost:3000
 ```
+
+### Note on the AI step
+If the Anthropic API key has no credits (or isn't set), the server
+automatically falls back to simple template-based posts so the demo still
+runs end to end — you'll just get plainer text instead of AI-written copy.
+Add credits at https://console.anthropic.com/settings/billing to see the
+real AI-generated versions.
+
+## Live Data: What's Real vs. Simulated Right Now
+
+- `match_data.json` contains one realistic Kelty Hearts match (goals, cards,
+  subs, final score) used to drive the simulated feed.
+- No live sports API is connected yet. Scottish League Two isn't covered by
+  most free live-score APIs — the two realistic paths are:
+  - **TheSportsDB Premium** (~$9/month) — live scores updated every 2 minutes
+  - **Manual live input** — someone at the match enters events as they happen
+- Either source can be dropped into `/api/live-feed` in `server.js` in place
+  of the simulated clock, without changing the post-generation or approval UI.
 
 ## Files
 
-- `server.js` — Backend API server
+- `dashboard.html` — Live feed + approval UI
+- `match_data.json` — Sample match used to drive the simulated feed
+- `server.js` — Simulated live clock, post generation (with AI fallback), API routes
 - `package.json` — Dependencies
 - `README.md` — This file
 
 ## Status
 
-Week 5 prototype - building live match automation with manual approval workflow.
+Week 5 prototype — proves the automation concept (detect → draft → approve)
+end to end using a simulated live feed.

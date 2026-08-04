@@ -1,3 +1,4 @@
+import Anthropic from "@anthropic-ai/sdk";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -7,92 +8,109 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const client = new Anthropic();
 
-// Load knowledge base
-const knowledgeBase = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "knowledge_base.json"), "utf-8")
+const matchData = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "match_data.json"), "utf-8")
 );
+
+// How fast the simulated match plays out: 1 match-minute = SECONDS_PER_MINUTE real seconds
+const SECONDS_PER_MINUTE = 2;
+
+let simulationStartTime = null;
 
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Q&A endpoint: Answer fan questions from knowledge base
-app.post("/api/ask-question", async (req, res) => {
-  try {
-    const { question } = req.body;
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "dashboard.html"));
+});
 
-    if (!question) {
-      return res.status(400).json({ error: "Question is required" });
+// Reset/start the simulated live match clock
+app.post("/api/start", (req, res) => {
+  simulationStartTime = Date.now();
+  res.json({ started: true });
+});
+
+// Returns events that have "happened" so far in simulated time
+app.get("/api/live-feed", (req, res) => {
+  if (!simulationStartTime) {
+    return res.json({ events: [], finished: false });
+  }
+
+  const elapsedSeconds = (Date.now() - simulationStartTime) / 1000;
+  const elapsedMinutes = elapsedSeconds / SECONDS_PER_MINUTE;
+
+  const events = matchData.events.filter((e) => e.minute <= elapsedMinutes);
+  const finished = events.length === matchData.events.length;
+
+  res.json({ events, finished });
+});
+
+// Generate Instagram / X / Facebook posts for a single match event
+app.post("/api/generate-posts", async (req, res) => {
+  try {
+    const { event } = req.body;
+
+    if (!event) {
+      return res.status(400).json({ error: "Event is required" });
     }
 
-    // Find best matching FAQ
-    const answer = findBestAnswer(question);
+    const prompt = `You are the social media team for Kelty Hearts FC, a Scottish League Two football club. A live match event just happened:
 
-    res.json({ answer });
+"${event.text}"
+
+Write three short social media posts announcing this event, in a warm, community-first tone (not corporate). Return ONLY valid JSON in this exact shape, no other text:
+
+{
+  "instagram": "post text with relevant emojis and hashtags, 2-3 sentences",
+  "x": "short punchy post under 280 characters, 1-2 emojis, 1-2 hashtags",
+  "facebook": "slightly longer, community-focused post, 2-4 sentences"
+}`;
+
+    let posts;
+    try {
+      const response = await client.messages.create({
+        model: "claude-opus-4-1",
+        max_tokens: 600,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const raw = response.content[0].type === "text" ? response.content[0].text : "{}";
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      posts = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+    } catch (aiError) {
+      // AI unavailable (e.g. no API credits) - fall back to template posts
+      // so the live-feed demo still works end to end.
+      console.warn("Claude API unavailable, using fallback templates:", aiError.message);
+      posts = fallbackPosts(event);
+    }
+
+    res.json({ posts });
   } catch (error) {
-    console.error("Error answering question:", error);
+    console.error("Error generating posts:", error);
     res.status(500).json({
-      error: "Failed to answer question",
+      error: "Failed to generate posts",
       details: error.message,
     });
   }
 });
 
-// Find the best matching answer from knowledge base
-function findBestAnswer(question) {
-  const lowerQuestion = question.toLowerCase();
-
-  // Score each FAQ
-  let bestMatch = null;
-  let bestScore = 0;
-
-  for (const faq of knowledgeBase.faqs) {
-    let score = 0;
-
-    // Check if any keywords match
-    for (const keyword of faq.keywords) {
-      if (lowerQuestion.includes(keyword)) {
-        score += 10; // Keyword match is worth 10 points
-      }
-    }
-
-    // Simple similarity: count matching words
-    const questionWords = lowerQuestion.split(/\s+/);
-    const faqWords = faq.question.toLowerCase().split(/\s+/);
-
-    for (const word of questionWords) {
-      if (faqWords.includes(word) && word.length > 3) {
-        score += 5; // Word match is worth 5 points
-      }
-    }
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = faq;
-    }
-  }
-
-  // If we found a good match (score > 5), return it
-  if (bestMatch && bestScore > 5) {
-    return bestMatch.answer;
-  }
-
-  // Default fallback answer
-  return `Thanks for your question! I didn't quite understand that. Try asking me about: tickets, match times, stadium location, membership, family visits, or getting to the ground. Or email us at ${knowledgeBase.general_info.email}`;
+function fallbackPosts(event) {
+  const base = event.text;
+  return {
+    instagram: `⚽ ${base} #KeltyHearts #ScottishFootball`,
+    x: `${base} #KeltyHearts`,
+    facebook: `${base} Come along and support the team at New Central Park! #KeltyHearts`,
+  };
 }
 
-// Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Serve fan assistant
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "fan_assistant.html"));
-});
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\n💬 Kelty Hearts Fan Q&A Assistant running on port ${PORT}`);
+  console.log(`\n⚽ Kelty Hearts Live Match Social Automation running on port ${PORT}`);
   console.log(`   Open http://localhost:${PORT} in your browser\n`);
 });
