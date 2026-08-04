@@ -188,6 +188,44 @@
     color: rgba(255,255,255,0.85);
     padding: 60px 20px;
   }
+
+  .test-panel {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .test-panel h2 {
+    font-size: 1.1em;
+    margin-bottom: 6px;
+  }
+  .test-panel .hint {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 14px;
+  }
+  .test-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .test-grid label {
+    font-size: 12px;
+    font-weight:600;
+    color:#555;
+    display:block;
+    margin-bottom: 4px;
+  }
+  .test-grid input, .test-grid select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  #testResult .posts-grid { margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -204,6 +242,72 @@
     <button class="primary" id="startBtn" onclick="startSimulation()">▶ Start Live Match Simulation</button>
   </div>
   <div class="sim-note">⚠ Simulated clock for testing — not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes).</div>
+
+  <div class="test-panel">
+    <h2>🧪 Test with a completely different match</h2>
+    <div class="hint">Type in ANY opponent and event yourself — this uses the exact same generator code as the simulation above, with no per-match code changes. It's the concrete proof this isn't hardcoded to one game.</div>
+
+    <div class="test-grid">
+      <div>
+        <label>Opponent</label>
+        <input id="tOpponent" placeholder="e.g. Queen's Park" value="Queen's Park">
+      </div>
+      <div>
+        <label>Event type</label>
+        <select id="tType" onchange="updateTestFields()">
+          <option value="goal">Goal</option>
+          <option value="card">Card</option>
+          <option value="substitution">Substitution</option>
+          <option value="kickoff">Kick-off</option>
+          <option value="halftime">Half-time</option>
+          <option value="fulltime">Full-time</option>
+        </select>
+      </div>
+      <div>
+        <label>Minute</label>
+        <input id="tMinute" type="number" value="17" min="1" max="120">
+      </div>
+      <div>
+        <label>Team</label>
+        <select id="tTeam">
+          <option value="home">Kelty Hearts</option>
+          <option value="away">Opponent</option>
+        </select>
+      </div>
+      <div id="tPlayerWrap">
+        <label>Player</label>
+        <input id="tPlayer" placeholder="e.g. Sam Wardrop">
+      </div>
+      <div id="tDetailWrap">
+        <label>Detail (goal only)</label>
+        <input id="tDetail" placeholder="e.g. a curling effort from 20 yards">
+      </div>
+      <div id="tCardTypeWrap" style="display:none">
+        <label>Card type</label>
+        <select id="tCardType"><option>Yellow</option><option>Red</option></select>
+      </div>
+      <div id="tOffWrap" style="display:none">
+        <label>Player off</label>
+        <input id="tPlayerOff" placeholder="optional">
+      </div>
+      <div id="tOnWrap" style="display:none">
+        <label>Player on</label>
+        <input id="tPlayerOn" placeholder="e.g. Craig Barr">
+      </div>
+      <div>
+        <label>Kelty score (after event)</label>
+        <input id="tHomeScore" type="number" value="1" min="0">
+      </div>
+      <div>
+        <label>Opponent score (after event)</label>
+        <input id="tAwayScore" type="number" value="0" min="0">
+      </div>
+    </div>
+
+    <button class="primary" onclick="generateTestPost()">Generate Post For This</button>
+
+    <div id="testResult" style="margin-top:16px;"></div>
+  </div>
 
   <div class="feed" id="feed"></div>
   <div class="empty-state" id="emptyState">Click "Start Live Match Simulation" to begin. Events will appear here as they happen — just like a real match feed.</div>
@@ -273,6 +377,65 @@ async function pollFeed() {
     document.getElementById('startBtn').disabled = false;
     document.getElementById('startBtn').textContent = '▶ Run Simulation Again';
   }
+}
+
+function updateTestFields() {
+  const type = document.getElementById('tType').value;
+  document.getElementById('tPlayerWrap').style.display = (type === 'goal' || type === 'card') ? '' : 'none';
+  document.getElementById('tDetailWrap').style.display = (type === 'goal') ? '' : 'none';
+  document.getElementById('tCardTypeWrap').style.display = (type === 'card') ? '' : 'none';
+  document.getElementById('tOffWrap').style.display = (type === 'substitution') ? '' : 'none';
+  document.getElementById('tOnWrap').style.display = (type === 'substitution') ? '' : 'none';
+}
+updateTestFields();
+
+async function generateTestPost() {
+  const type = document.getElementById('tType').value;
+  const minute = parseInt(document.getElementById('tMinute').value, 10);
+  const opponent = document.getElementById('tOpponent').value || 'Opponent';
+  const teamSide = document.getElementById('tTeam').value;
+  const team = teamSide === 'home' ? 'Kelty Hearts' : opponent;
+  const home = parseInt(document.getElementById('tHomeScore').value, 10) || 0;
+  const away = parseInt(document.getElementById('tAwayScore').value, 10) || 0;
+
+  const event = { minute, type, team };
+
+  if (type === 'goal') {
+    event.player = document.getElementById('tPlayer').value || 'Player';
+    event.detail = document.getElementById('tDetail').value || undefined;
+  } else if (type === 'card') {
+    event.player = document.getElementById('tPlayer').value || 'Player';
+    event.cardType = document.getElementById('tCardType').value;
+  } else if (type === 'substitution') {
+    event.playerOff = document.getElementById('tPlayerOff').value || null;
+    event.playerOn = document.getElementById('tPlayerOn').value || 'Player';
+  } else {
+    event.text = `${type === 'kickoff' ? 'Kick-off!' : type === 'halftime' ? 'Half-time.' : 'Full time.'}`;
+  }
+
+  const context = { awayTeam: opponent, venue: 'New Central Park', score: { home, away } };
+
+  const resultBox = document.getElementById('testResult');
+  resultBox.innerHTML = '<div class="generating">Generating…</div>';
+
+  const res = await fetch('/api/generate-posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event, context })
+  });
+  const data = await res.json();
+
+  const platforms = [
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'x', label: 'X / Twitter' },
+    { key: 'facebook', label: 'Facebook' }
+  ];
+  resultBox.innerHTML = `<div class="posts-grid">${platforms.map(p => `
+    <div class="post-box">
+      <div class="post-platform">${p.label}</div>
+      <div class="post-text">${(data.posts[p.key] || '').replace(/</g,'&lt;')}</div>
+    </div>
+  `).join('')}</div>`;
 }
 
 function addEventCard(event) {

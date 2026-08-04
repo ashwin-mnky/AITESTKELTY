@@ -72,19 +72,39 @@ app.get("/api/match-info", (req, res) => {
   });
 });
 
-// Generate Instagram / X / Facebook posts for a single match event
+// Generate Instagram / X / Facebook posts for a single match event.
+//
+// Normally this uses the loaded match_data.json (the simulated live match).
+// But the caller can instead pass `context: { awayTeam, venue, score }` to
+// generate a post for a completely different, made-up match on the fly -
+// proving the template/generation logic isn't tied to any one game. Only
+// `homeTeam` is fixed to "Kelty Hearts"; everything else is parameterized.
 app.post("/api/generate-posts", async (req, res) => {
   try {
-    const { event } = req.body;
+    const { event, context } = req.body;
 
     if (!event) {
       return res.status(400).json({ error: "Event is required" });
     }
 
+    const match = context
+      ? {
+          homeTeam: "Kelty Hearts",
+          awayTeam: context.awayTeam || "Opponent",
+          venue: context.venue || "New Central Park",
+          score: context.score || { home: 0, away: 0 },
+        }
+      : {
+          homeTeam: matchData.homeTeam,
+          awayTeam: matchData.awayTeam,
+          venue: matchData.venue,
+          score: scoreAtMinute(event.minute),
+        };
+
     let posts = null;
 
     if (hasApiKey) {
-      const scoreLine = matchScoreLine(event.minute);
+      const scoreLine = `${match.score.home}-${match.score.away} | ${matchHashtag(match.homeTeam, match.awayTeam)}`;
       const prompt = `You are the social media team for Kelty Hearts FC, a Scottish League Two football club. A live match event just happened:
 
 "${event.text}"
@@ -127,7 +147,7 @@ Write three versions in this house style. Return ONLY valid JSON in this exact s
     }
 
     if (!posts) {
-      posts = fallbackPosts(event);
+      posts = fallbackPosts(event, match);
     }
 
     res.json({ posts });
@@ -155,27 +175,30 @@ function scoreAtMinute(minute) {
 
 // Match hashtag in Kelty Hearts' real style, e.g. #FORKEL, #KELBRO
 // (home team code + away team code, first 3 letters of each team's first word).
-function matchHashtag() {
+// Takes the two team names explicitly - it doesn't know or care what match
+// this is, so it works identically for the loaded match or a made-up one.
+function matchHashtag(homeTeam, awayTeam) {
   const code = (name) => name.split(" ")[0].slice(0, 3).toUpperCase();
-  return `#${code(matchData.homeTeam)}${code(matchData.awayTeam)}`;
-}
-
-function matchScoreLine(minute) {
-  const { home, away } = scoreAtMinute(minute);
-  return `${home}-${away} | ${matchHashtag()}`;
+  return `#${code(homeTeam)}${code(awayTeam)}`;
 }
 
 // Free, no-API-key-required post generator, matching Kelty Hearts' real
 // posting house style (minute | headline, blank line, detail, blank line,
 // score | match hashtag). Used automatically whenever ANTHROPIC_API_KEY
 // isn't set (or the AI call fails), so the tool always works.
-function fallbackPosts(event) {
-  const scoreLine = matchScoreLine(event.minute);
+//
+// `match` is { homeTeam, awayTeam, venue, score } - this function has no
+// idea whether it's the loaded simulation or a one-off match someone typed
+// in through the "test with a different match" panel. Same code, any match.
+function fallbackPosts(event, match) {
+  const { homeTeam, awayTeam, venue, score } = match;
+  const hashtag = matchHashtag(homeTeam, awayTeam);
+  const scoreLine = `${score.home}-${score.away} | ${hashtag}`;
   let body;
 
   switch (event.type) {
     case "kickoff":
-      body = `${event.minute}' | Kick-off!\n\n${matchData.homeTeam} v ${matchData.awayTeam} is underway at ${matchData.venue}.\n\n0-0 | ${matchHashtag()}`;
+      body = `${event.minute}' | Kick-off!\n\n${homeTeam} v ${awayTeam} is underway at ${venue}.\n\n0-0 | ${hashtag}`;
       break;
 
     case "goal": {
@@ -195,16 +218,14 @@ function fallbackPosts(event) {
     }
 
     case "halftime": {
-      const { home, away } = scoreAtMinute(event.minute);
-      const state = home > away ? `${matchData.homeTeam} ahead` : home < away ? `${matchData.homeTeam} behind` : "Level";
-      body = `HT | ${state} at ${matchData.venue}.\n\n${scoreLine}`;
+      const state = score.home > score.away ? `${homeTeam} ahead` : score.home < score.away ? `${homeTeam} behind` : "Level";
+      body = `HT | ${state} at ${venue}.\n\n${scoreLine}`;
       break;
     }
 
     case "fulltime": {
-      const { home, away } = scoreAtMinute(event.minute);
-      const result = home > away ? "win" : home < away ? "defeat" : "draw";
-      body = `FT | Full-time ${result} for ${matchData.homeTeam} against ${matchData.awayTeam}.\n\n${scoreLine}`;
+      const result = score.home > score.away ? "win" : score.home < score.away ? "defeat" : "draw";
+      body = `FT | Full-time ${result} for ${homeTeam} against ${awayTeam}.\n\n${scoreLine}`;
       break;
     }
 
