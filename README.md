@@ -34,23 +34,31 @@ pipeline (post generation, approval dashboard) doesn't need to change.
 
 ### Prerequisites
 - Node.js (v16+)
-- An Anthropic API key with available credits (for AI-generated posts)
+- No API key required — see below.
 
 ### Steps
 
 ```bash
 npm install
-export ANTHROPIC_API_KEY='sk-ant-...'
 npm start
 # Open http://localhost:3000
 ```
 
-### Note on the AI step
-If the Anthropic API key has no credits (or isn't set), the server
-automatically falls back to simple template-based posts so the demo still
-runs end to end — you'll just get plainer text instead of AI-written copy.
-Add credits at https://console.anthropic.com/settings/billing to see the
-real AI-generated versions.
+### Free mode vs. AI mode
+By default (no `ANTHROPIC_API_KEY` set, or no credits on the key), the server
+automatically writes posts using built-in templates — no API calls, no cost,
+nothing to configure. This is the default and fully working mode.
+
+If you later want AI-written copy instead of templates, set
+`ANTHROPIC_API_KEY` (with credits) before running `npm start`:
+
+```bash
+export ANTHROPIC_API_KEY='sk-ant-...'
+npm start
+```
+
+The app checks for a usable key automatically and only calls the AI when one
+is available — otherwise it uses the free template mode automatically.
 
 ## Live Data: What's Real vs. Simulated Right Now
 

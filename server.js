@@ -8,7 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const client = new Anthropic();
+const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
+const client = hasApiKey ? new Anthropic() : null;
 
 const matchData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "match_data.json"), "utf-8")
@@ -56,7 +57,10 @@ app.post("/api/generate-posts", async (req, res) => {
       return res.status(400).json({ error: "Event is required" });
     }
 
-    const prompt = `You are the social media team for Kelty Hearts FC, a Scottish League Two football club. A live match event just happened:
+    let posts = null;
+
+    if (hasApiKey) {
+      const prompt = `You are the social media team for Kelty Hearts FC, a Scottish League Two football club. A live match event just happened:
 
 "${event.text}"
 
@@ -68,21 +72,22 @@ Write three short social media posts announcing this event, in a warm, community
   "facebook": "slightly longer, community-focused post, 2-4 sentences"
 }`;
 
-    let posts;
-    try {
-      const response = await client.messages.create({
-        model: "claude-opus-4-1",
-        max_tokens: 600,
-        messages: [{ role: "user", content: prompt }],
-      });
+      try {
+        const response = await client.messages.create({
+          model: "claude-opus-4-1",
+          max_tokens: 600,
+          messages: [{ role: "user", content: prompt }],
+        });
 
-      const raw = response.content[0].type === "text" ? response.content[0].text : "{}";
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      posts = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
-    } catch (aiError) {
-      // AI unavailable (e.g. no API credits) - fall back to template posts
-      // so the live-feed demo still works end to end.
-      console.warn("Claude API unavailable, using fallback templates:", aiError.message);
+        const raw = response.content[0].type === "text" ? response.content[0].text : "{}";
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        posts = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+      } catch (aiError) {
+        console.warn("Claude API unavailable, using free template mode:", aiError.message);
+      }
+    }
+
+    if (!posts) {
       posts = fallbackPosts(event);
     }
 
@@ -96,12 +101,24 @@ Write three short social media posts announcing this event, in a warm, community
   }
 });
 
+// Free, no-API-key-required post generator. Used automatically whenever
+// ANTHROPIC_API_KEY isn't set (or the AI call fails), so the tool always works.
 function fallbackPosts(event) {
-  const base = event.text;
+  const emojiByType = {
+    goal: "⚽",
+    card: event.cardType === "Red" ? "🟥" : "🟨",
+    substitution: "🔄",
+    kickoff: "⚽",
+    halftime: "⏸️",
+    fulltime: "🏁",
+  };
+  const emoji = emojiByType[event.type] || "📣";
+  const fact = event.text;
+
   return {
-    instagram: `⚽ ${base} #KeltyHearts #ScottishFootball`,
-    x: `${base} #KeltyHearts`,
-    facebook: `${base} Come along and support the team at New Central Park! #KeltyHearts`,
+    instagram: `${emoji} ${fact}\n\n💚🤍 #KeltyHearts #ScottishFootball #COYH`,
+    x: `${emoji} ${fact} #KeltyHearts`,
+    facebook: `${emoji} ${fact}\n\nFollow along for more updates from New Central Park. #KeltyHearts`,
   };
 }
 
