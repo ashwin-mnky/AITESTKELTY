@@ -253,6 +253,13 @@ async function pollFeed() {
 
   document.getElementById('clockBadge').textContent = `${data.currentMinute}'`;
 
+  // Score comes from the server (it tracks both teams internally) since the
+  // feed itself only shows Kelty Hearts' own events - the opponent's goals
+  // still count on the scoreboard, they just don't get a post generated.
+  homeScore = data.score.home;
+  awayScore = data.score.away;
+  updateScore();
+
   for (const event of data.events) {
     if (seenEvents.has(event.minute + event.type + (event.player || ''))) continue;
     seenEvents.add(event.minute + event.type + (event.player || ''));
@@ -269,11 +276,6 @@ async function pollFeed() {
 }
 
 function addEventCard(event) {
-  if (event.type === 'goal') {
-    if (event.team === homeTeam) homeScore++; else awayScore++;
-    updateScore();
-  }
-
   const card = document.createElement('div');
   card.className = 'event-card';
   card.innerHTML = `

@@ -35,20 +35,31 @@ app.post("/api/start", (req, res) => {
 
 // Returns events that have "happened" so far in simulated time, plus the
 // current simulated match clock so the UI can show a live-updating timer.
+//
+// Only Kelty Hearts' own events (goals/cards/subs) are surfaced for posting -
+// the opponent's team-specific events are skipped entirely, so no post ever
+// gets generated for "the other team's" news. Whole-match events (kickoff,
+// half-time, full-time) still show, since those are Kelty's own account
+// reporting the state of their match, not news about the opponent.
 app.get("/api/live-feed", (req, res) => {
+  const lastMinute = matchData.events[matchData.events.length - 1].minute;
+
   if (!simulationStartTime) {
-    return res.json({ events: [], finished: false, currentMinute: 0 });
+    return res.json({ events: [], finished: false, currentMinute: 0, score: { home: 0, away: 0 } });
   }
 
   const elapsedSeconds = (Date.now() - simulationStartTime) / 1000;
   const elapsedMinutes = elapsedSeconds / SECONDS_PER_MINUTE;
 
-  const events = matchData.events.filter((e) => e.minute <= elapsedMinutes);
-  const finished = events.length === matchData.events.length;
-  const lastMinute = matchData.events[matchData.events.length - 1].minute;
-  const currentMinute = Math.min(lastMinute, Math.floor(elapsedMinutes));
+  const events = matchData.events
+    .filter((e) => e.minute <= elapsedMinutes)
+    .filter((e) => !e.team || e.team === matchData.homeTeam);
 
-  res.json({ events, finished, currentMinute });
+  const finished = elapsedMinutes >= lastMinute;
+  const currentMinute = Math.min(lastMinute, Math.floor(elapsedMinutes));
+  const score = scoreAtMinute(elapsedMinutes);
+
+  res.json({ events, finished, currentMinute, score });
 });
 
 // Match metadata so the frontend never has to hardcode team names

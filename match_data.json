@@ -7,11 +7,11 @@
   "events": [
     { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Brora Rangers is underway at New Central Park." },
     { "minute": 10, "type": "goal", "team": "Kelty Hearts", "player": "Ryan Shanley", "detail": "a well-taken finish to open the scoring", "text": "GOAL! Ryan Shanley opens the scoring for Kelty Hearts. 1-0." },
-    { "minute": 20, "type": "commentary", "text": "Brora pushing for a way back in but Kelty's defence is standing firm." },
+    { "minute": 20, "type": "commentary", "team": "Brora Rangers", "text": "Brora pushing for a way back in but Kelty's defence is standing firm." },
     { "minute": 29, "type": "goal", "team": "Brora Rangers", "player": "James Wallace", "detail": "a composed finish to level the game", "text": "GOAL! James Wallace equalises for Brora Rangers. 1-1." },
     { "minute": 37, "type": "goal", "team": "Kelty Hearts", "player": "Ryan Shanley", "detail": "his second of the afternoon", "text": "GOAL! Ryan Shanley grabs his second to restore Kelty's lead. 2-1." },
     { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts 2-1 Brora Rangers." },
-    { "minute": 55, "type": "commentary", "text": "Brora start the second half on the front foot, looking for a way back into the tie." },
+    { "minute": 55, "type": "commentary", "team": "Brora Rangers", "text": "Brora start the second half on the front foot, looking for a way back into the tie." },
     { "minute": 65, "type": "goal", "team": "Brora Rangers", "player": "Shane Sutherland", "detail": "a well-taken equaliser", "text": "GOAL! Shane Sutherland levels it again for Brora Rangers. 2-2." },
     { "minute": 75, "type": "substitution", "team": "Kelty Hearts", "playerOff": null, "playerOn": "Finlay Moffat", "text": "Substitution for Kelty Hearts: Finlay Moffat is introduced from the bench." },
     { "minute": 91, "type": "goal", "team": "Kelty Hearts", "player": "Finlay Moffat", "detail": "a poked finish from inside the box after good work from captain Jack Brydon", "text": "GOOOOOAAALLLLLLL! It's Finlay Moffat who scores a dramatic stoppage-time winner! 3-2." },
