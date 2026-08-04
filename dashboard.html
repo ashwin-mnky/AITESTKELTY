@@ -264,6 +264,38 @@
     font-size: 14px;
   }
   #testResult .posts-grid { margin-top: 4px; }
+
+  .next-match-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .next-match-info .label {
+    font-size:11px; color:#999; text-transform:uppercase; letter-spacing:.5px;
+  }
+  .next-match-info .fixture { font-size:1.15em; font-weight:700; color:#333; margin: 2px 0; }
+  .next-match-info .venue { font-size:13px; color:#777; }
+  .countdown {
+    font-size:1.5em; font-weight:700; color:#764ba2;
+    font-variant-numeric: tabular-nums; text-align:center;
+  }
+  .countdown-label { font-size:11px; color:#999; text-align:center; margin-top:2px; }
+  .track-live-btn {
+    background:#c92a2a; color:white; border:none;
+    padding: 12px 22px; border-radius: 8px; font-weight:700;
+    cursor:pointer; font-size:15px;
+  }
+  .team-warning {
+    font-size:12px; color:#e8590c; margin-top: 4px; display:none;
+  }
+  .team-warning.show { display:block; }
 </style>
 </head>
 <body>
@@ -272,6 +304,89 @@
     <h1>⚽ Kelty Hearts — Live Match Social Automation</h1>
     <p id="subtitle">Prototype: simulated live feed → auto-generated social posts → human approval</p>
   </header>
+
+  <div class="next-match-card">
+    <div class="next-match-info">
+      <div class="label">Next Match</div>
+      <div class="fixture" id="nextFixture">Loading…</div>
+      <div class="venue" id="nextVenue"></div>
+    </div>
+    <div>
+      <div class="countdown" id="countdown">--:--:--</div>
+      <div class="countdown-label" id="countdownLabel">until kick-off</div>
+    </div>
+    <button class="track-live-btn" onclick="openLiveTracker()">🔴 Track This Match Live</button>
+  </div>
+
+  <div class="test-panel" id="liveTrackerPanel" style="display:none;">
+    <h2>🔴 Live Match Tracker</h2>
+    <div class="hint">
+      Use this DURING a real match — type in each event as it actually happens, in real time. There's no script and no timer here; you control the pace, and the score updates automatically as you log goals.
+    </div>
+
+    <div class="test-grid">
+      <div>
+        <label>Opponent</label>
+        <input id="lOpponent" placeholder="e.g. Annan Athletic" oninput="validateTeamName('lOpponent','lOpponentWarning')">
+        <div class="team-warning" id="lOpponentWarning"></div>
+      </div>
+      <div>
+        <label>Venue</label>
+        <input id="lVenue" placeholder="e.g. New Central Park">
+      </div>
+    </div>
+
+    <div class="score-badge" id="liveScoreBadge" style="display:inline-block;margin-bottom:16px;">Kelty Hearts 0-0 Opponent</div>
+
+    <div class="test-grid">
+      <div>
+        <label>Event type</label>
+        <select id="lType" onchange="updateLiveFields()">
+          <option value="goal">Goal</option>
+          <option value="card">Card</option>
+          <option value="substitution">Substitution</option>
+          <option value="kickoff">Kick-off</option>
+          <option value="halftime">Half-time</option>
+          <option value="fulltime">Full-time</option>
+        </select>
+      </div>
+      <div>
+        <label>Minute</label>
+        <input id="lMinute" type="number" value="1" min="1" max="120">
+      </div>
+      <div>
+        <label>Team</label>
+        <select id="lTeam">
+          <option value="home">Kelty Hearts</option>
+          <option value="away">Opponent</option>
+        </select>
+      </div>
+      <div id="lPlayerWrap">
+        <label>Player</label>
+        <input id="lPlayer" placeholder="e.g. Blair Henderson">
+      </div>
+      <div id="lDetailWrap">
+        <label>Detail (goal only)</label>
+        <input id="lDetail" placeholder="e.g. a header from a corner">
+      </div>
+      <div id="lCardTypeWrap" style="display:none">
+        <label>Card type</label>
+        <select id="lCardType"><option>Yellow</option><option>Red</option></select>
+      </div>
+      <div id="lOffWrap" style="display:none">
+        <label>Player off</label>
+        <input id="lPlayerOff" placeholder="optional">
+      </div>
+      <div id="lOnWrap" style="display:none">
+        <label>Player on</label>
+        <input id="lPlayerOn" placeholder="e.g. Craig Barr">
+      </div>
+    </div>
+
+    <button class="primary" onclick="addLiveEvent()">➕ Log This Event</button>
+
+    <div class="feed" id="liveFeed" style="margin-top:16px;"></div>
+  </div>
 
   <div class="controls">
     <div class="clock-badge" id="clockBadge">--'</div>
@@ -306,7 +421,8 @@
     <div class="test-grid">
       <div>
         <label>Opponent</label>
-        <input id="tOpponent" placeholder="e.g. Queen's Park" value="Queen's Park">
+        <input id="tOpponent" placeholder="e.g. Queen's Park" value="Queen's Park" oninput="validateTeamName('tOpponent','tOpponentWarning')">
+        <div class="team-warning" id="tOpponentWarning"></div>
       </div>
       <div>
         <label>Event type</label>
@@ -386,6 +502,147 @@ async function loadMatchInfo() {
     `${info.competition ? info.competition + ' — ' : ''}${info.venue} · simulated live feed → auto-generated social posts → human approval`;
 }
 loadMatchInfo();
+
+// ---- Next match card + countdown ----
+let nextMatchData = null;
+
+async function loadNextMatch() {
+  const res = await fetch('/api/next-match');
+  nextMatchData = await res.json();
+  document.getElementById('nextFixture').textContent = `Kelty Hearts vs ${nextMatchData.opponent}`;
+  document.getElementById('nextVenue').textContent = `${nextMatchData.competition || ''} · ${nextMatchData.venue}`;
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+}
+loadNextMatch();
+
+function updateCountdown() {
+  if (!nextMatchData) return;
+  const diff = new Date(nextMatchData.kickoff).getTime() - Date.now();
+  const el = document.getElementById('countdown');
+  const label = document.getElementById('countdownLabel');
+  if (diff <= 0) {
+    el.textContent = 'KICK-OFF';
+    label.textContent = 'match day is here';
+    return;
+  }
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  el.textContent = days > 0
+    ? `${days}d ${hours}h ${mins}m`
+    : `${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  label.textContent = 'until kick-off';
+}
+
+// ---- Known-team validation (warns, never blocks - see known_teams.json) ----
+let knownTeamsList = [];
+
+async function loadKnownTeams() {
+  const res = await fetch('/api/known-teams');
+  const data = await res.json();
+  knownTeamsList = data.teams.map(t => t.toLowerCase());
+}
+loadKnownTeams();
+
+function validateTeamName(inputId, warningId) {
+  const value = document.getElementById(inputId).value.trim();
+  const warningEl = document.getElementById(warningId);
+  if (!value) {
+    warningEl.classList.remove('show');
+    return;
+  }
+  const known = knownTeamsList.includes(value.toLowerCase());
+  if (known) {
+    warningEl.classList.remove('show');
+  } else {
+    warningEl.textContent = `⚠ "${value}" isn't in our known-opponents list — double check the spelling, or ignore this if it's a new/unlisted opponent.`;
+    warningEl.classList.add('show');
+  }
+}
+
+// ---- Live Match Tracker (real events, real time, no script) ----
+let liveHome = 0, liveAway = 0;
+let liveEventCounter = 0;
+
+function openLiveTracker() {
+  const panel = document.getElementById('liveTrackerPanel');
+  panel.style.display = 'block';
+  if (nextMatchData) {
+    document.getElementById('lOpponent').value = nextMatchData.opponent;
+    document.getElementById('lVenue').value = nextMatchData.venue;
+    validateTeamName('lOpponent', 'lOpponentWarning');
+  }
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateLiveFields() {
+  const type = document.getElementById('lType').value;
+  document.getElementById('lPlayerWrap').style.display = (type === 'goal' || type === 'card') ? '' : 'none';
+  document.getElementById('lDetailWrap').style.display = (type === 'goal') ? '' : 'none';
+  document.getElementById('lCardTypeWrap').style.display = (type === 'card') ? '' : 'none';
+  document.getElementById('lOffWrap').style.display = (type === 'substitution') ? '' : 'none';
+  document.getElementById('lOnWrap').style.display = (type === 'substitution') ? '' : 'none';
+}
+updateLiveFields();
+
+function updateLiveScoreBadge() {
+  const opponent = document.getElementById('lOpponent').value || 'Opponent';
+  document.getElementById('liveScoreBadge').textContent = `Kelty Hearts ${liveHome}-${liveAway} ${opponent}`;
+}
+
+async function addLiveEvent() {
+  const type = document.getElementById('lType').value;
+  const minute = parseInt(document.getElementById('lMinute').value, 10);
+  const opponent = document.getElementById('lOpponent').value || 'Opponent';
+  const venue = document.getElementById('lVenue').value || 'New Central Park';
+  const teamSide = document.getElementById('lTeam').value;
+  const team = teamSide === 'home' ? 'Kelty Hearts' : opponent;
+
+  const event = { minute, type, team };
+
+  if (type === 'goal') {
+    event.player = document.getElementById('lPlayer').value || 'Player';
+    event.detail = document.getElementById('lDetail').value || undefined;
+    if (teamSide === 'home') liveHome++; else liveAway++;
+  } else if (type === 'card') {
+    event.player = document.getElementById('lPlayer').value || 'Player';
+    event.cardType = document.getElementById('lCardType').value;
+  } else if (type === 'substitution') {
+    event.playerOff = document.getElementById('lPlayerOff').value || null;
+    event.playerOn = document.getElementById('lPlayerOn').value || 'Player';
+  } else {
+    event.text = type === 'kickoff' ? 'Kick-off!' : type === 'halftime' ? 'Half-time.' : 'Full time.';
+  }
+
+  updateLiveScoreBadge();
+
+  const context = { awayTeam: opponent, venue, score: { home: liveHome, away: liveAway } };
+
+  liveEventCounter++;
+  const id = `live-${liveEventCounter}`;
+
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.innerHTML = `
+    <div class="event-header">
+      <div class="minute-badge">${minute}'</div>
+      <div class="event-type">${type}</div>
+    </div>
+    <div class="posts-grid" id="posts-${id}"><div class="generating">Generating social posts…</div></div>
+  `;
+  document.getElementById('liveFeed').prepend(card);
+
+  const res = await fetch('/api/generate-posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event, context, templates: getTemplates() })
+  });
+  const data = await res.json();
+  renderPosts(id, data.posts);
+}
 
 let defaultTemplates = {};
 

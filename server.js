@@ -14,6 +14,12 @@ const client = hasApiKey ? new Anthropic() : null;
 const matchData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "match_data.json"), "utf-8")
 );
+const knownTeams = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "known_teams.json"), "utf-8")
+);
+const nextMatch = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "next_match.json"), "utf-8")
+);
 
 // How fast the simulated match plays out: 1 match-minute = SECONDS_PER_MINUTE real seconds
 const SECONDS_PER_MINUTE = 2;
@@ -251,6 +257,19 @@ function fallbackPosts(event, match, customTemplates) {
 // without duplicating the wording in two places.
 app.get("/api/default-templates", (req, res) => {
   res.json(DEFAULT_TEMPLATES);
+});
+
+// Reference list used to warn (not block) on an unrecognized opponent name.
+// See known_teams.json for the honesty caveat - it's manually compiled,
+// not pulled from a live source, since sports data sites are blocked here.
+app.get("/api/known-teams", (req, res) => {
+  res.json(knownTeams);
+});
+
+// Placeholder next-fixture info (see next_match.json for why it's manual,
+// not live) - drives the "Next Match" countdown and "Track Live Match" flow.
+app.get("/api/next-match", (req, res) => {
+  res.json(nextMatch);
 });
 
 app.get("/api/health", (req, res) => {
