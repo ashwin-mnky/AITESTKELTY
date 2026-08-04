@@ -45,9 +45,20 @@ app.get("/api/live-feed", (req, res) => {
 
   const events = matchData.events.filter((e) => e.minute <= elapsedMinutes);
   const finished = events.length === matchData.events.length;
-  const currentMinute = Math.min(90, Math.floor(elapsedMinutes));
+  const lastMinute = matchData.events[matchData.events.length - 1].minute;
+  const currentMinute = Math.min(lastMinute, Math.floor(elapsedMinutes));
 
   res.json({ events, finished, currentMinute });
+});
+
+// Match metadata so the frontend never has to hardcode team names
+app.get("/api/match-info", (req, res) => {
+  res.json({
+    homeTeam: matchData.homeTeam,
+    awayTeam: matchData.awayTeam,
+    venue: matchData.venue,
+    competition: matchData.competition,
+  });
 });
 
 // Generate Instagram / X / Facebook posts for a single match event
@@ -166,9 +177,11 @@ function fallbackPosts(event) {
       body = `${event.minute}' | ${event.cardType} card for ${event.player} (${event.team})\n\n${scoreLine}`;
       break;
 
-    case "substitution":
-      body = `${event.minute}' | Substitution for ${event.team}\n\nOff: ${event.playerOff}\nOn: ${event.playerOn}\n\n${scoreLine}`;
+    case "substitution": {
+      const offLine = event.playerOff ? `Off: ${event.playerOff}\n` : "";
+      body = `${event.minute}' | Substitution for ${event.team}\n\n${offLine}On: ${event.playerOn}\n\n${scoreLine}`;
       break;
+    }
 
     case "halftime": {
       const { home, away } = scoreAtMinute(event.minute);

@@ -194,12 +194,12 @@
 <div class="container">
   <header>
     <h1>⚽ Kelty Hearts — Live Match Social Automation</h1>
-    <p>Prototype: simulated live feed → auto-generated social posts → human approval</p>
+    <p id="subtitle">Prototype: simulated live feed → auto-generated social posts → human approval</p>
   </header>
 
   <div class="controls">
     <div class="clock-badge" id="clockBadge">--'</div>
-    <div class="score-badge" id="scoreBadge">Kelty Hearts 0-0 Stirling Albion</div>
+    <div class="score-badge" id="scoreBadge">Loading match…</div>
     <div class="status-pill" id="statusPill">Not started</div>
     <button class="primary" id="startBtn" onclick="startSimulation()">▶ Start Live Match Simulation</button>
   </div>
@@ -213,6 +213,19 @@
 let pollTimer = null;
 let seenEvents = new Set();
 let homeScore = 0, awayScore = 0;
+let homeTeam = 'Home';
+let awayTeam = 'Away';
+
+async function loadMatchInfo() {
+  const res = await fetch('/api/match-info');
+  const info = await res.json();
+  homeTeam = info.homeTeam;
+  awayTeam = info.awayTeam;
+  updateScore();
+  document.getElementById('subtitle').textContent =
+    `${info.competition ? info.competition + ' — ' : ''}${info.venue} · simulated live feed → auto-generated social posts → human approval`;
+}
+loadMatchInfo();
 
 async function startSimulation() {
   document.getElementById('startBtn').disabled = true;
@@ -231,7 +244,7 @@ async function startSimulation() {
 }
 
 function updateScore() {
-  document.getElementById('scoreBadge').textContent = `Kelty Hearts ${homeScore}-${awayScore} Stirling Albion`;
+  document.getElementById('scoreBadge').textContent = `${homeTeam} ${homeScore}-${awayScore} ${awayTeam}`;
 }
 
 async function pollFeed() {
@@ -257,7 +270,7 @@ async function pollFeed() {
 
 function addEventCard(event) {
   if (event.type === 'goal') {
-    if (event.team === 'Kelty Hearts') homeScore++; else awayScore++;
+    if (event.team === homeTeam) homeScore++; else awayScore++;
     updateScore();
   }
 

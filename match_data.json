@@ -1,20 +1,20 @@
 {
   "homeTeam": "Kelty Hearts",
-  "awayTeam": "Stirling Albion",
+  "awayTeam": "Brora Rangers",
   "venue": "New Central Park",
+  "competition": "Premier Sports Cup",
+  "sourceNote": "Based on the real Kelty Hearts 3-2 Brora Rangers match, 21 July 2026 (Premier Sports Cup group stage). Goal scorers, minutes and final score are real; commentary lines between events are written for demo pacing.",
   "events": [
-    { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Stirling Albion is underway at New Central Park." },
-    { "minute": 12, "type": "goal", "team": "Kelty Hearts", "player": "Blair Henderson", "detail": "a close-range finish after good link-up play in midfield", "text": "GOAL! Blair Henderson opens the scoring for Kelty Hearts, finishing off good link-up play in midfield. 1-0." },
-    { "minute": 15, "type": "commentary", "text": "Stirling have a sniff at the other end but Danny Handling's effort is well off target." },
-    { "minute": 22, "type": "card", "cardType": "Yellow", "team": "Stirling Albion", "player": "Craig Midgley", "text": "Yellow card for Craig Midgley (Stirling Albion) after a late challenge." },
-    { "minute": 30, "type": "commentary", "text": "Kelty searching for a second goal but Blair Henderson's free kick strikes the wall." },
-    { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts 1-0 Stirling Albion." },
-    { "minute": 60, "type": "goal", "team": "Kelty Hearts", "player": "Blair Henderson", "detail": "a header from a corner, his second of the afternoon", "text": "GOAL! Henderson grabs his second of the afternoon, heading home from a corner. 2-0 Kelty Hearts." },
-    { "minute": 68, "type": "substitution", "team": "Stirling Albion", "playerOff": "Shaun McKenzie", "playerOn": "Marc Laird", "text": "Substitution for Stirling Albion: Marc Laird replaces Shaun McKenzie." },
-    { "minute": 72, "type": "goal", "team": "Kelty Hearts", "player": "Marcus Godinho", "detail": "a clinical finish on the counter-attack", "text": "GOAL! Marcus Godinho makes it 3-0 with a clinical finish on the counter-attack." },
-    { "minute": 78, "type": "substitution", "team": "Kelty Hearts", "playerOff": "John Pelosi", "playerOn": "Craig Barr", "text": "Substitution for Kelty Hearts: Craig Barr comes on for John Pelosi." },
-    { "minute": 82, "type": "card", "cardType": "Yellow", "team": "Kelty Hearts", "player": "Craig Barr", "text": "Yellow card for Craig Barr (Kelty Hearts), booked for a foul just after coming on." },
-    { "minute": 85, "type": "goal", "team": "Stirling Albion", "player": "Danny Handling", "detail": "a free kick from 25 yards", "text": "GOAL! Danny Handling pulls one back for Stirling Albion with a free kick from 25 yards. 3-1." },
-    { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 3-1 Stirling Albion. A dominant home win, with Blair Henderson bagging a brace." }
+    { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Brora Rangers is underway at New Central Park." },
+    { "minute": 10, "type": "goal", "team": "Kelty Hearts", "player": "Ryan Shanley", "detail": "a well-taken finish to open the scoring", "text": "GOAL! Ryan Shanley opens the scoring for Kelty Hearts. 1-0." },
+    { "minute": 20, "type": "commentary", "text": "Brora pushing for a way back in but Kelty's defence is standing firm." },
+    { "minute": 29, "type": "goal", "team": "Brora Rangers", "player": "James Wallace", "detail": "a composed finish to level the game", "text": "GOAL! James Wallace equalises for Brora Rangers. 1-1." },
+    { "minute": 37, "type": "goal", "team": "Kelty Hearts", "player": "Ryan Shanley", "detail": "his second of the afternoon", "text": "GOAL! Ryan Shanley grabs his second to restore Kelty's lead. 2-1." },
+    { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts 2-1 Brora Rangers." },
+    { "minute": 55, "type": "commentary", "text": "Brora start the second half on the front foot, looking for a way back into the tie." },
+    { "minute": 65, "type": "goal", "team": "Brora Rangers", "player": "Shane Sutherland", "detail": "a well-taken equaliser", "text": "GOAL! Shane Sutherland levels it again for Brora Rangers. 2-2." },
+    { "minute": 75, "type": "substitution", "team": "Kelty Hearts", "playerOff": null, "playerOn": "Finlay Moffat", "text": "Substitution for Kelty Hearts: Finlay Moffat is introduced from the bench." },
+    { "minute": 91, "type": "goal", "team": "Kelty Hearts", "player": "Finlay Moffat", "detail": "a poked finish from inside the box after good work from captain Jack Brydon", "text": "GOOOOOAAALLLLLLL! It's Finlay Moffat who scores a dramatic stoppage-time winner! 3-2." },
+    { "minute": 92, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 3-2 Brora Rangers. A dramatic late winner from substitute Finlay Moffat sends Kelty through." }
   ]
 }
