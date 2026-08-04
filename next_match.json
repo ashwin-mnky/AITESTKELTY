@@ -1,6 +1,6 @@
 {
   "note": "PLACEHOLDER fixture data. This is not connected to a live fixtures feed - sports data sites (BBC, TheSportsDB) are blocked from this environment, so this file has to be updated manually by club staff before each match. Edit opponent/venue/kickoff below to match the real next fixture.",
-  "opponent": "Annan Athletic",
+  "opponent": "Stirling Albion",
   "venue": "New Central Park (Home)",
   "competition": "William Hill League Two",
   "kickoff": "2026-08-08T15:00:00+01:00"
