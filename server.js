@@ -33,10 +33,11 @@ app.post("/api/start", (req, res) => {
   res.json({ started: true });
 });
 
-// Returns events that have "happened" so far in simulated time
+// Returns events that have "happened" so far in simulated time, plus the
+// current simulated match clock so the UI can show a live-updating timer.
 app.get("/api/live-feed", (req, res) => {
   if (!simulationStartTime) {
-    return res.json({ events: [], finished: false });
+    return res.json({ events: [], finished: false, currentMinute: 0 });
   }
 
   const elapsedSeconds = (Date.now() - simulationStartTime) / 1000;
@@ -44,8 +45,9 @@ app.get("/api/live-feed", (req, res) => {
 
   const events = matchData.events.filter((e) => e.minute <= elapsedMinutes);
   const finished = events.length === matchData.events.length;
+  const currentMinute = Math.min(90, Math.floor(elapsedMinutes));
 
-  res.json({ events, finished });
+  res.json({ events, finished, currentMinute });
 });
 
 // Generate Instagram / X / Facebook posts for a single match event

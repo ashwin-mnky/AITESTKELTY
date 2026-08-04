@@ -38,6 +38,23 @@
     border-radius: 8px;
     color:#4c3fa0;
   }
+  .clock-badge {
+    font-weight: 700;
+    font-size: 1.2em;
+    font-variant-numeric: tabular-nums;
+    background:#111;
+    color:#fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    letter-spacing: .5px;
+  }
+  .sim-note {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    margin: -10px 0 16px;
+  }
   button.primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color:white;
@@ -181,10 +198,12 @@
   </header>
 
   <div class="controls">
+    <div class="clock-badge" id="clockBadge">--'</div>
     <div class="score-badge" id="scoreBadge">Kelty Hearts 0-0 Stirling Albion</div>
     <div class="status-pill" id="statusPill">Not started</div>
     <button class="primary" id="startBtn" onclick="startSimulation()">▶ Start Live Match Simulation</button>
   </div>
+  <div class="sim-note">⚠ Simulated clock for testing — not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes).</div>
 
   <div class="feed" id="feed"></div>
   <div class="empty-state" id="emptyState">Click "Start Live Match Simulation" to begin. Events will appear here as they happen — just like a real match feed.</div>
@@ -203,6 +222,7 @@ async function startSimulation() {
   seenEvents.clear();
   homeScore = 0; awayScore = 0;
   updateScore();
+  document.getElementById('clockBadge').textContent = "0'";
   document.getElementById('feed').innerHTML = '';
 
   await fetch('/api/start', { method: 'POST' });
@@ -217,6 +237,8 @@ function updateScore() {
 async function pollFeed() {
   const res = await fetch('/api/live-feed');
   const data = await res.json();
+
+  document.getElementById('clockBadge').textContent = `${data.currentMinute}'`;
 
   for (const event of data.events) {
     if (seenEvents.has(event.minute + event.type + (event.player || ''))) continue;
