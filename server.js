@@ -266,10 +266,47 @@ app.get("/api/known-teams", (req, res) => {
   res.json(knownTeams);
 });
 
+// Kelty Hearts' real TheSportsDB team ID - confirmed by fetching a real
+// match (lookupevent.php?id=2270202) and reading idHomeTeam from the result.
+const KELTY_TEAM_ID = "140311";
+
+// Tries TheSportsDB's free tier for Kelty's real next fixture. Falls back to
+// the manually-maintained next_match.json if the request fails for any
+// reason (network block, no fixture scheduled, unexpected response shape) -
+// same "try live, fall back to something that always works" pattern as the
+// AI/template split for post generation.
+async function fetchLiveNextMatch() {
+  const url = `https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=${KELTY_TEAM_ID}`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error(`TheSportsDB returned ${response.status}`);
+
+  const data = await response.json();
+  const event = data.events && data.events[0];
+  if (!event) throw new Error("No upcoming fixture returned");
+
+  const isHome = event.strHomeTeam === "Kelty Hearts";
+  const opponent = isHome ? event.strAwayTeam : event.strHomeTeam;
+  const kickoff = `${event.dateEvent}T${event.strTime}Z`;
+
+  return {
+    source: "live",
+    opponent,
+    venue: `${event.strVenue}${isHome ? " (Home)" : " (Away)"}`,
+    competition: event.strLeague,
+    kickoff,
+  };
+}
+
 // Placeholder next-fixture info (see next_match.json for why it's manual,
 // not live) - drives the "Next Match" countdown and "Track Live Match" flow.
-app.get("/api/next-match", (req, res) => {
-  res.json(nextMatch);
+app.get("/api/next-match", async (req, res) => {
+  try {
+    const live = await fetchLiveNextMatch();
+    res.json(live);
+  } catch (error) {
+    console.warn("Live fixture fetch failed, using manual next_match.json:", error.message);
+    res.json({ ...nextMatch, source: "placeholder" });
+  }
 });
 
 app.get("/api/health", (req, res) => {

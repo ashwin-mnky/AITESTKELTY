@@ -509,8 +509,9 @@ let nextMatchData = null;
 async function loadNextMatch() {
   const res = await fetch('/api/next-match');
   nextMatchData = await res.json();
+  const sourceTag = nextMatchData.source === 'live' ? ' 🟢 live' : ' ⚠ placeholder';
   document.getElementById('nextFixture').textContent = `Kelty Hearts vs ${nextMatchData.opponent}`;
-  document.getElementById('nextVenue').textContent = `${nextMatchData.competition || ''} · ${nextMatchData.venue}`;
+  document.getElementById('nextVenue').textContent = `${nextMatchData.competition || ''} · ${nextMatchData.venue} ·${sourceTag}`;
   updateCountdown();
   setInterval(updateCountdown, 1000);
 }
