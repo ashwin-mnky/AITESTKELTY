@@ -189,6 +189,44 @@
     padding: 60px 20px;
   }
 
+  .settings-panel {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .settings-panel h2 { font-size: 1.1em; margin-bottom: 6px; }
+  .settings-panel .hint { font-size: 13px; color: #777; margin-bottom: 14px; }
+  .settings-panel .hint code {
+    background:#f0f0f0; padding: 1px 5px; border-radius: 4px; font-size: 12px;
+  }
+  .template-row { margin-bottom: 12px; }
+  .template-row label {
+    font-size: 13px; font-weight:600; color:#444;
+    display:block; margin-bottom: 4px; text-transform: capitalize;
+  }
+  .template-row textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    resize: vertical;
+  }
+  .settings-actions { display:flex; gap:10px; margin-top: 6px; }
+  .btn-secondary {
+    background:#eee; color:#333; border:none;
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor:pointer;
+  }
+  .saved-note { font-size: 12px; color:#2b8a3e; margin-left: 4px; }
+
+  .photo-attach { margin-top: 10px; font-size: 13px; }
+  .photo-attach label { color:#666; display:block; margin-bottom:4px; }
+  .photo-preview { max-width: 140px; margin-top: 6px; border-radius: 8px; display:block; }
+
   .test-panel {
     background: white;
     border-radius: 12px;
@@ -242,6 +280,24 @@
     <button class="primary" id="startBtn" onclick="startSimulation()">▶ Start Live Match Simulation</button>
   </div>
   <div class="sim-note">⚠ Simulated clock for testing — not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes).</div>
+
+  <div class="settings-panel">
+    <h2>⚙️ Customize post wording</h2>
+    <div class="hint">
+      Edit exactly how each type of update is worded. Use
+      <code>{player}</code>, <code>{minute}</code>, <code>{team}</code>,
+      <code>{opponent}</code>, <code>{detail}</code>, <code>{cardType}</code>,
+      <code>{playerOn}</code>, <code>{playerOff}</code>, <code>{score}</code>,
+      <code>{hashtag}</code>, <code>{venue}</code> — they'll be swapped in
+      automatically for each real event, whatever the player's name is.
+    </div>
+    <div id="templateFields"></div>
+    <div class="settings-actions">
+      <button class="primary" onclick="saveTemplates()">Save Wording</button>
+      <button class="btn-secondary" onclick="resetTemplates()">Reset to Defaults</button>
+      <span class="saved-note" id="savedNote" style="display:none;">✓ Saved</span>
+    </div>
+  </div>
 
   <div class="test-panel">
     <h2>🧪 Test with a completely different match</h2>
@@ -330,6 +386,46 @@ async function loadMatchInfo() {
     `${info.competition ? info.competition + ' — ' : ''}${info.venue} · simulated live feed → auto-generated social posts → human approval`;
 }
 loadMatchInfo();
+
+let defaultTemplates = {};
+
+async function loadTemplateEditor() {
+  const res = await fetch('/api/default-templates');
+  defaultTemplates = await res.json();
+  renderTemplateFields(getTemplates());
+}
+loadTemplateEditor();
+
+function getTemplates() {
+  const saved = localStorage.getItem('keltyTemplates');
+  return saved ? JSON.parse(saved) : { ...defaultTemplates };
+}
+
+function renderTemplateFields(templates) {
+  const container = document.getElementById('templateFields');
+  container.innerHTML = Object.keys(defaultTemplates).map(type => `
+    <div class="template-row">
+      <label>${type}</label>
+      <textarea id="tmpl-${type}">${(templates[type] || defaultTemplates[type]).replace(/</g, '&lt;')}</textarea>
+    </div>
+  `).join('');
+}
+
+function saveTemplates() {
+  const templates = {};
+  for (const type of Object.keys(defaultTemplates)) {
+    templates[type] = document.getElementById(`tmpl-${type}`).value;
+  }
+  localStorage.setItem('keltyTemplates', JSON.stringify(templates));
+  const note = document.getElementById('savedNote');
+  note.style.display = 'inline';
+  setTimeout(() => { note.style.display = 'none'; }, 2000);
+}
+
+function resetTemplates() {
+  localStorage.removeItem('keltyTemplates');
+  renderTemplateFields(defaultTemplates);
+}
 
 async function startSimulation() {
   document.getElementById('startBtn').disabled = true;
@@ -421,7 +517,7 @@ async function generateTestPost() {
   const res = await fetch('/api/generate-posts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event, context })
+    body: JSON.stringify({ event, context, templates: getTemplates() })
   });
   const data = await res.json();
 
@@ -466,7 +562,7 @@ async function generatePosts(event) {
     const res = await fetch('/api/generate-posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event })
+      body: JSON.stringify({ event, templates: getTemplates() })
     });
     const data = await res.json();
     renderPosts(id, data.posts);
@@ -492,14 +588,41 @@ function renderPosts(id, posts) {
     </div>
   `).join('');
 
+  const photoAttach = document.createElement('div');
+  photoAttach.className = 'photo-attach';
+  photoAttach.innerHTML = `
+    <label>📎 Attach a photo (optional)</label>
+    <input type="file" accept="image/*" onchange="previewPhoto(this, '${id}')">
+    <img id="photoPreview-${id}" class="photo-preview" style="display:none;">
+  `;
+  container.parentElement.appendChild(photoAttach);
+
   const approveRow = document.createElement('div');
   approveRow.className = 'approve-row';
-  approveRow.innerHTML = `<button class="approve-btn" onclick="approve(this)">Approve & Send</button>`;
+  approveRow.innerHTML = `<button class="approve-btn" onclick="approve(this, '${id}')">Approve & Send</button>`;
   container.parentElement.appendChild(approveRow);
 }
 
-function approve(btn) {
-  btn.parentElement.innerHTML = `<span class="approved-tag">✓ Approved — ready to post</span>`;
+// Photo is preview-only (stored as a data URL in the browser) - this
+// prototype doesn't post to real social platforms yet, so there's nowhere
+// to upload it to. It demonstrates that attaching an image is optional and
+// doesn't block approving/sending the text.
+function previewPhoto(input, id) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById(`photoPreview-${id}`);
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function approve(btn, id) {
+  const img = document.getElementById(`photoPreview-${id}`);
+  const hasPhoto = img && img.style.display !== 'none' && img.src;
+  btn.parentElement.innerHTML = `<span class="approved-tag">✓ Approved${hasPhoto ? ' (with photo)' : ''} — ready to post</span>`;
 }
 </script>
 </body>

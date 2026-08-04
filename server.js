@@ -81,7 +81,7 @@ app.get("/api/match-info", (req, res) => {
 // `homeTeam` is fixed to "Kelty Hearts"; everything else is parameterized.
 app.post("/api/generate-posts", async (req, res) => {
   try {
-    const { event, context } = req.body;
+    const { event, context, templates } = req.body;
 
     if (!event) {
       return res.status(400).json({ error: "Event is required" });
@@ -147,7 +147,7 @@ Write three versions in this house style. Return ONLY valid JSON in this exact s
     }
 
     if (!posts) {
-      posts = fallbackPosts(event, match);
+      posts = fallbackPosts(event, match, templates);
     }
 
     res.json({ posts });
@@ -182,6 +182,25 @@ function matchHashtag(homeTeam, awayTeam) {
   return `#${code(homeTeam)}${code(awayTeam)}`;
 }
 
+// Fills a template string's {placeholder} tokens from a values object.
+// Unknown/missing placeholders become an empty string rather than erroring,
+// so a user-written template can't crash the app if they typo a field name.
+function fillTemplate(template, values) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => (values[key] ?? "").toString());
+}
+
+// The default wording for each event type, written as {placeholder} templates.
+// This is also what a user sees pre-filled in the "Customize post wording"
+// panel - editing and saving there overrides these per event type.
+const DEFAULT_TEMPLATES = {
+  kickoff: "{minute}' | Kick-off!\n\n{team} v {opponent} is underway at {venue}.\n\n0-0 | {hashtag}",
+  goal: "{minute}' | GOOOOOAAALLLLLLL\n\nIt's {player} who scores with {detail}!!\n\n{score} | {hashtag}",
+  card: "{minute}' | {cardType} card for {player} ({team})\n\n{score} | {hashtag}",
+  substitution: "{minute}' | Substitution for {team}\n\nOff: {playerOff}\nOn: {playerOn}\n\n{score} | {hashtag}",
+  halftime: "HT | {state} at {venue}.\n\n{score} | {hashtag}",
+  fulltime: "FT | Full-time {result} for {team} against {opponent}.\n\n{score} | {hashtag}",
+};
+
 // Free, no-API-key-required post generator, matching Kelty Hearts' real
 // posting house style (minute | headline, blank line, detail, blank line,
 // score | match hashtag). Used automatically whenever ANTHROPIC_API_KEY
@@ -190,48 +209,36 @@ function matchHashtag(homeTeam, awayTeam) {
 // `match` is { homeTeam, awayTeam, venue, score } - this function has no
 // idea whether it's the loaded simulation or a one-off match someone typed
 // in through the "test with a different match" panel. Same code, any match.
-function fallbackPosts(event, match) {
+//
+// `customTemplates` (optional) lets a user override the wording per event
+// type from the dashboard's "Customize post wording" panel, using the same
+// {placeholder} tokens as DEFAULT_TEMPLATES.
+function fallbackPosts(event, match, customTemplates) {
   const { homeTeam, awayTeam, venue, score } = match;
   const hashtag = matchHashtag(homeTeam, awayTeam);
-  const scoreLine = `${score.home}-${score.away} | ${hashtag}`;
-  let body;
 
-  switch (event.type) {
-    case "kickoff":
-      body = `${event.minute}' | Kick-off!\n\n${homeTeam} v ${awayTeam} is underway at ${venue}.\n\n0-0 | ${hashtag}`;
-      break;
+  const values = {
+    minute: event.minute,
+    team: homeTeam,
+    opponent: awayTeam,
+    venue,
+    hashtag,
+    score: `${score.home}-${score.away}`,
+    player: event.player || "",
+    detail: event.detail || "a well-taken finish",
+    cardType: event.cardType || "",
+    playerOn: event.playerOn || "",
+    playerOff: event.playerOff || "the bench",
+    state: score.home > score.away ? `${homeTeam} ahead` : score.home < score.away ? `${homeTeam} behind` : "Level",
+    result: score.home > score.away ? "win" : score.home < score.away ? "defeat" : "draw",
+  };
 
-    case "goal": {
-      const detail = event.detail || "a well-taken finish";
-      body = `${event.minute}' | GOOOOOAAALLLLLLL\n\nIt's ${event.player} who scores with ${detail}!!\n\n${scoreLine}`;
-      break;
-    }
+  const template =
+    (customTemplates && customTemplates[event.type]) ||
+    DEFAULT_TEMPLATES[event.type] ||
+    "{minute}' | " + (event.text || "") + "\n\n{score} | {hashtag}";
 
-    case "card":
-      body = `${event.minute}' | ${event.cardType} card for ${event.player} (${event.team})\n\n${scoreLine}`;
-      break;
-
-    case "substitution": {
-      const offLine = event.playerOff ? `Off: ${event.playerOff}\n` : "";
-      body = `${event.minute}' | Substitution for ${event.team}\n\n${offLine}On: ${event.playerOn}\n\n${scoreLine}`;
-      break;
-    }
-
-    case "halftime": {
-      const state = score.home > score.away ? `${homeTeam} ahead` : score.home < score.away ? `${homeTeam} behind` : "Level";
-      body = `HT | ${state} at ${venue}.\n\n${scoreLine}`;
-      break;
-    }
-
-    case "fulltime": {
-      const result = score.home > score.away ? "win" : score.home < score.away ? "defeat" : "draw";
-      body = `FT | Full-time ${result} for ${homeTeam} against ${awayTeam}.\n\n${scoreLine}`;
-      break;
-    }
-
-    default:
-      body = `${event.minute}' | ${event.text}\n\n${scoreLine}`;
-  }
+  const body = fillTemplate(template, values);
 
   return {
     instagram: `${body}\n\n💚🤍`,
@@ -239,6 +246,12 @@ function fallbackPosts(event, match) {
     facebook: `${body}\n\nCome along and follow the team! #KeltyHearts`,
   };
 }
+
+// So the dashboard's template editor can pre-fill and "reset to defaults"
+// without duplicating the wording in two places.
+app.get("/api/default-templates", (req, res) => {
+  res.json(DEFAULT_TEMPLATES);
+});
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
