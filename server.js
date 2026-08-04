@@ -60,16 +60,31 @@ app.post("/api/generate-posts", async (req, res) => {
     let posts = null;
 
     if (hasApiKey) {
+      const scoreLine = matchScoreLine(event.minute);
       const prompt = `You are the social media team for Kelty Hearts FC, a Scottish League Two football club. A live match event just happened:
 
 "${event.text}"
 
-Write three short social media posts announcing this event, in a warm, community-first tone (not corporate). Return ONLY valid JSON in this exact shape, no other text:
+Kelty Hearts' real posts follow this exact house style — minute, short punchy headline, blank line, brief factual detail, blank line, score + match hashtag. For example, real posts from their account look like:
+
+"80' | Substitutions for Kelty Hearts
+
+1-0 | #FORKEL"
+
+"91' | GOOOOOAAALLLLLLL
+
+It's Finlay Moffat who scores a low range effort from the left side of the box!!
+
+3-2 | #KELBRO"
+
+Match that exact structure and tone (short, punchy, minute-led, dramatic on goals) for this event. The score line to use is: "${scoreLine}"
+
+Write three versions in this house style. Return ONLY valid JSON in this exact shape, no other text:
 
 {
-  "instagram": "post text with relevant emojis and hashtags, 2-3 sentences",
-  "x": "short punchy post under 280 characters, 1-2 emojis, 1-2 hashtags",
-  "facebook": "slightly longer, community-focused post, 2-4 sentences"
+  "instagram": "same house-style post, with 1-2 relevant emojis added",
+  "x": "the post exactly in house style, no extra emojis needed",
+  "facebook": "same house-style post, with one warm extra sentence inviting fans to follow along"
 }`;
 
       try {
@@ -101,24 +116,80 @@ Write three short social media posts announcing this event, in a warm, community
   }
 });
 
-// Free, no-API-key-required post generator. Used automatically whenever
-// ANTHROPIC_API_KEY isn't set (or the AI call fails), so the tool always works.
+// Score at a given match minute, computed from goal events so far.
+function scoreAtMinute(minute) {
+  let home = 0;
+  let away = 0;
+  for (const e of matchData.events) {
+    if (e.type === "goal" && e.minute <= minute) {
+      if (e.team === matchData.homeTeam) home++;
+      else away++;
+    }
+  }
+  return { home, away };
+}
+
+// Match hashtag in Kelty Hearts' real style, e.g. #FORKEL, #KELBRO
+// (home team code + away team code, first 3 letters of each team's first word).
+function matchHashtag() {
+  const code = (name) => name.split(" ")[0].slice(0, 3).toUpperCase();
+  return `#${code(matchData.homeTeam)}${code(matchData.awayTeam)}`;
+}
+
+function matchScoreLine(minute) {
+  const { home, away } = scoreAtMinute(minute);
+  return `${home}-${away} | ${matchHashtag()}`;
+}
+
+// Free, no-API-key-required post generator, matching Kelty Hearts' real
+// posting house style (minute | headline, blank line, detail, blank line,
+// score | match hashtag). Used automatically whenever ANTHROPIC_API_KEY
+// isn't set (or the AI call fails), so the tool always works.
 function fallbackPosts(event) {
-  const emojiByType = {
-    goal: "⚽",
-    card: event.cardType === "Red" ? "🟥" : "🟨",
-    substitution: "🔄",
-    kickoff: "⚽",
-    halftime: "⏸️",
-    fulltime: "🏁",
-  };
-  const emoji = emojiByType[event.type] || "📣";
-  const fact = event.text;
+  const scoreLine = matchScoreLine(event.minute);
+  let body;
+
+  switch (event.type) {
+    case "kickoff":
+      body = `${event.minute}' | Kick-off!\n\n${matchData.homeTeam} v ${matchData.awayTeam} is underway at ${matchData.venue}.\n\n0-0 | ${matchHashtag()}`;
+      break;
+
+    case "goal": {
+      const detail = event.detail || "a well-taken finish";
+      body = `${event.minute}' | GOOOOOAAALLLLLLL\n\nIt's ${event.player} who scores with ${detail}!!\n\n${scoreLine}`;
+      break;
+    }
+
+    case "card":
+      body = `${event.minute}' | ${event.cardType} card for ${event.player} (${event.team})\n\n${scoreLine}`;
+      break;
+
+    case "substitution":
+      body = `${event.minute}' | Substitution for ${event.team}\n\nOff: ${event.playerOff}\nOn: ${event.playerOn}\n\n${scoreLine}`;
+      break;
+
+    case "halftime": {
+      const { home, away } = scoreAtMinute(event.minute);
+      const state = home > away ? `${matchData.homeTeam} ahead` : home < away ? `${matchData.homeTeam} behind` : "Level";
+      body = `HT | ${state} at ${matchData.venue}.\n\n${scoreLine}`;
+      break;
+    }
+
+    case "fulltime": {
+      const { home, away } = scoreAtMinute(event.minute);
+      const result = home > away ? "win" : home < away ? "defeat" : "draw";
+      body = `FT | Full-time ${result} for ${matchData.homeTeam} against ${matchData.awayTeam}.\n\n${scoreLine}`;
+      break;
+    }
+
+    default:
+      body = `${event.minute}' | ${event.text}\n\n${scoreLine}`;
+  }
 
   return {
-    instagram: `${emoji} ${fact}\n\n💚🤍 #KeltyHearts #ScottishFootball #COYH`,
-    x: `${emoji} ${fact} #KeltyHearts`,
-    facebook: `${emoji} ${fact}\n\nFollow along for more updates from New Central Park. #KeltyHearts`,
+    instagram: `${body}\n\n💚🤍`,
+    x: body,
+    facebook: `${body}\n\nCome along and follow the team! #KeltyHearts`,
   };
 }
 
