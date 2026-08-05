@@ -296,9 +296,44 @@
     font-size:12px; color:#e8590c; margin-top: 4px; display:none;
   }
   .team-warning.show { display:block; }
+
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+  }
+  .toast {
+    background: #212529;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    font-size: 14px;
+    max-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastIn 0.3s ease-out;
+  }
+  .toast.leaving { animation: toastOut 0.3s ease-in forwards; }
+  .toast .toast-icon { font-size: 20px; flex-shrink: 0; }
+  .toast .toast-text strong { display:block; margin-bottom: 2px; }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(40px); }
+  }
 </style>
 </head>
 <body>
+<div class="toast-container" id="toastContainer"></div>
 <div class="container">
   <header>
     <h1>⚽ Kelty Hearts — Live Match Social Automation</h1>
@@ -446,6 +481,24 @@
 </div>
 
 <script>
+// Toast alert - fires whenever a new post finishes generating, so staff
+// notice even if they're not watching the feed at that moment.
+function showToast(title, body) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-icon">🔔</div>
+    <div class="toast-text"><strong>${title}</strong>${body}</div>
+  `;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('leaving');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
 let pollTimer = null;
 let seenEvents = new Set();
 let homeScore = 0, awayScore = 0;
@@ -603,6 +656,7 @@ async function addLiveEvent() {
   });
   const data = await res.json();
   renderPosts(id, data.posts);
+  showToast('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
 }
 
 let defaultTemplates = {};
@@ -747,6 +801,7 @@ async function generateTestPost() {
       <div class="post-text">${(data.posts[p.key] || '').replace(/</g,'&lt;')}</div>
     </div>
   `).join('')}</div>`;
+  showToast('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
 }
 
 function addEventCard(event) {
@@ -771,6 +826,12 @@ function cssId(event) {
   return (event.minute + event.type + (event.player || '')).replace(/[^a-zA-Z0-9]/g, '');
 }
 
+// Human-friendly label for a toast, e.g. "90' Goal" or "HT Half-time"
+function eventToastLabel(event) {
+  const typeLabel = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+  return `${event.minute}' ${typeLabel}`;
+}
+
 async function generatePosts(event) {
   const id = cssId(event);
   try {
@@ -781,6 +842,7 @@ async function generatePosts(event) {
     });
     const data = await res.json();
     renderPosts(id, data.posts);
+    showToast('New post ready to send', eventToastLabel(event));
   } catch (err) {
     document.getElementById('posts-' + id).innerHTML = `<div class="generating">Failed to generate posts.</div>`;
   }
