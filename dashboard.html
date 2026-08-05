@@ -297,6 +297,21 @@
   }
   .team-warning.show { display:block; }
 
+  .notif-bar {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .notif-bar button { white-space: nowrap; }
+
   .toast-container {
     position: fixed;
     top: 20px;
@@ -339,6 +354,11 @@
     <h1>⚽ Kelty Hearts — Live Match Social Automation</h1>
     <p id="subtitle">Prototype: simulated live feed → auto-generated social posts → human approval</p>
   </header>
+
+  <div class="notif-bar">
+    <span id="notifStatusText">🔔 Get alerted even when you're on another tab or app</span>
+    <button class="btn-secondary" id="notifBtn" onclick="enableDesktopNotifications()">Enable Desktop Notifications</button>
+  </div>
 
   <div class="next-match-card">
     <div class="next-match-info">
@@ -499,6 +519,47 @@ function showToast(title, body) {
   }, 5000);
 }
 
+// Real OS-level desktop notification - unlike the toast above, this shows
+// even if the tab isn't focused or you're on a completely different app.
+// Requires a one-time browser permission grant.
+function updateNotifButton() {
+  const btn = document.getElementById('notifBtn');
+  const status = document.getElementById('notifStatusText');
+  if (!('Notification' in window)) {
+    status.textContent = "🔔 Desktop notifications aren't supported in this browser";
+    btn.style.display = 'none';
+  } else if (Notification.permission === 'granted') {
+    status.textContent = '✅ Desktop notifications are on';
+    btn.style.display = 'none';
+  } else if (Notification.permission === 'denied') {
+    status.textContent = "🔕 Desktop notifications are blocked — check your browser's site settings";
+    btn.style.display = 'none';
+  } else {
+    status.textContent = "🔔 Get alerted even when you're on another tab or app";
+    btn.style.display = 'inline-block';
+  }
+}
+updateNotifButton();
+
+async function enableDesktopNotifications() {
+  if (!('Notification' in window)) return;
+  await Notification.requestPermission();
+  updateNotifButton();
+}
+
+function notifyDesktop(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body });
+  }
+}
+
+// Fires both alerts together - the in-page toast for when you're looking
+// at the tab, the desktop notification for when you're not.
+function alertNewPost(title, body) {
+  showToast(title, body);
+  notifyDesktop(title, body);
+}
+
 let pollTimer = null;
 let seenEvents = new Set();
 let homeScore = 0, awayScore = 0;
@@ -656,7 +717,7 @@ async function addLiveEvent() {
   });
   const data = await res.json();
   renderPosts(id, data.posts);
-  showToast('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
+  alertNewPost('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
 }
 
 let defaultTemplates = {};
@@ -801,7 +862,7 @@ async function generateTestPost() {
       <div class="post-text">${(data.posts[p.key] || '').replace(/</g,'&lt;')}</div>
     </div>
   `).join('')}</div>`;
-  showToast('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
+  alertNewPost('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
 }
 
 function addEventCard(event) {
@@ -842,7 +903,7 @@ async function generatePosts(event) {
     });
     const data = await res.json();
     renderPosts(id, data.posts);
-    showToast('New post ready to send', eventToastLabel(event));
+    alertNewPost('New post ready to send', eventToastLabel(event));
   } catch (err) {
     document.getElementById('posts-' + id).innerHTML = `<div class="generating">Failed to generate posts.</div>`;
   }
