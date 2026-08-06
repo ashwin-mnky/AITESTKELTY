@@ -28,7 +28,36 @@ pipeline (post generation, approval dashboard) doesn't need to change.
    - **Instagram** — emoji-heavy, hashtags
    - **X/Twitter** — short and punchy
    - **Facebook** — community-focused, slightly longer
-5. Click **"Approve & Send"** on any post to mark it ready to publish
+5. Click **"📋 Copy"** on whichever platform's version you want, then paste it
+   into that app yourself. Click **"✓ Mark as Approved"** to note it's ready.
+
+Also included:
+- **Live Match Tracker** — for using this during a real match: no script or
+  timer, you log each event as it happens and the score tracks automatically
+- **Next Match card** — countdown to kickoff, tries a live fixture fetch first
+- **5-scenario dropdown** — proves the generator handles different opponents/
+  event types without any code changes, no free-text typing required
+- **Customizable post wording** — edit the template per event type using
+  `{player}`/`{minute}`/etc. placeholders
+- **Desktop notifications** — real OS-level alert when a new post is ready,
+  even if you're on another tab or app
+
+## Why This Doesn't Post Automatically
+
+This app **never posts to real Instagram/X/Facebook accounts** — every post
+is copy-paste only, by design, for three reasons:
+
+1. **Cost and access are real barriers.** X's posting API now requires a paid
+   developer tier (~$100+/month for write access). Meta's (Facebook/
+   Instagram) API is free but requires business verification and an app
+   review process before it'll publish anything.
+2. **"AI" doesn't do the posting anyway.** The AI/template step only writes
+   the text. Actually publishing is a separate, ordinary API call to each
+   platform - unrelated to Claude or any AI credits.
+3. **The risk doesn't fit a prototype.** Automatic posting means a bad or
+   wrong draft could go out publicly, on the club's real account, before a
+   human ever sees it. A human copy-pasting is a deliberate safety step, not
+   a missing feature.
 
 ## Setup & Running
 

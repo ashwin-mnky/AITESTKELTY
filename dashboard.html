@@ -151,7 +151,13 @@
     line-height: 1.5;
     white-space: pre-wrap;
     color:#333;
+    margin-bottom: 8px;
   }
+  .copy-btn {
+    background:#eee; color:#333; border:none;
+    padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor:pointer;
+  }
+  .copy-btn:hover { background:#ddd; }
   .generating {
     color:#999;
     font-size: 14px;
@@ -922,7 +928,8 @@ function renderPosts(id, posts) {
   container.innerHTML = platforms.map(p => `
     <div class="post-box">
       <div class="post-platform">${p.label}</div>
-      <div class="post-text">${(posts[p.key] || '').replace(/</g,'&lt;')}</div>
+      <div class="post-text" id="posttext-${id}-${p.key}">${(posts[p.key] || '').replace(/</g,'&lt;')}</div>
+      <button class="copy-btn" onclick="copyPostText('posttext-${id}-${p.key}', this)">📋 Copy</button>
     </div>
   `).join('');
 
@@ -937,8 +944,20 @@ function renderPosts(id, posts) {
 
   const approveRow = document.createElement('div');
   approveRow.className = 'approve-row';
-  approveRow.innerHTML = `<button class="approve-btn" onclick="approve(this, '${id}')">Approve & Send</button>`;
+  approveRow.innerHTML = `<button class="approve-btn" onclick="approve(this, '${id}')">✓ Mark as Approved</button>`;
   container.parentElement.appendChild(approveRow);
+}
+
+// Copies one platform's post text to the clipboard so it can be pasted
+// straight into Instagram/X/Facebook - this app doesn't post automatically
+// (see README for why), so copy-paste is the actual real-world action.
+function copyPostText(textId, btn) {
+  const text = document.getElementById(textId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
 }
 
 // Photo is preview-only (stored as a data URL in the browser) - this
