@@ -111,12 +111,22 @@ app.post("/api/generate-posts", async (req, res) => {
 
     if (hasApiKey) {
       const scoreLine = `${match.score.home}-${match.score.away} | ${matchHashtag(match.homeTeam, match.awayTeam)}`;
-      const prompt = `You are the social media team for Kelty Hearts FC, a Scottish League Two football club. A live match event just happened:
+      const prompt = `PURPOSE: Write draft social media posts announcing a live Kelty Hearts FC match event, in the club's own established voice, for a staff member to review and copy-paste - not to publish automatically.
 
-"${event.text}"
+INFORMATION NEEDED:
+- Event that just happened: "${event.text}"
+- Current score line: "${scoreLine}"
 
-Kelty Hearts' real posts follow this exact house style — minute, short punchy headline, blank line, brief factual detail, blank line, score + match hashtag. For example, real posts from their account look like:
+TONE: Short, punchy, minute-led. Dramatic and celebratory for goals (e.g. "GOOOOOAAALLLLLLL"). Plain and factual for cards, subs, kickoff, half-time, and full-time. Never corporate-sounding.
 
+OUTPUT FORMAT: Return ONLY valid JSON, no other text, in this exact shape:
+{
+  "instagram": "house-style post, with 1-2 relevant emojis added",
+  "x": "house-style post exactly as-is, no extra emojis needed",
+  "facebook": "house-style post, with one warm extra sentence inviting fans to follow along"
+}
+
+SAMPLE RESULT (real Kelty Hearts posts - match this exact structure: minute, short headline, blank line, brief detail if any, blank line, score + hashtag):
 "80' | Substitutions for Kelty Hearts
 
 1-0 | #FORKEL"
@@ -127,15 +137,7 @@ It's Finlay Moffat who scores a low range effort from the left side of the box!!
 
 3-2 | #KELBRO"
 
-Match that exact structure and tone (short, punchy, minute-led, dramatic on goals) for this event. The score line to use is: "${scoreLine}"
-
-Write three versions in this house style. Return ONLY valid JSON in this exact shape, no other text:
-
-{
-  "instagram": "same house-style post, with 1-2 relevant emojis added",
-  "x": "the post exactly in house style, no extra emojis needed",
-  "facebook": "same house-style post, with one warm extra sentence inviting fans to follow along"
-}`;
+Now write the three posts for the event above, in that exact structure.`;
 
       try {
         const response = await client.messages.create({
