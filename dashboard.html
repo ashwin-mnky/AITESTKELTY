@@ -398,6 +398,13 @@
       <h2>▶ Practice Simulation</h2>
       <p class="hint" id="subtitle">A real Kelty Hearts match, replayed on a compressed clock.</p>
 
+      <div class="form-grid">
+        <div style="grid-column: 1 / -1;">
+          <label>Which match to replay</label>
+          <select id="matchPicker" onchange="onMatchPicked()"></select>
+        </div>
+      </div>
+
       <div class="status-row">
         <div class="badge-group">
           <div class="clock-badge" id="clockBadge">--'</div>
@@ -406,7 +413,7 @@
         </div>
         <button class="btn-primary" id="startBtn" onclick="startSimulation()">▶ Start Live Match Simulation</button>
       </div>
-      <div class="sim-caption">⚠ Simulated clock for demo purposes — not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes).</div>
+      <div class="sim-caption">⚠ Simulated clock for demo purposes — not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes). These are Kelty Hearts' 3 most recent real results — pick any of them.</div>
     </div>
 
     <div class="feed" id="feed" style="margin-top:16px;"></div>
@@ -552,6 +559,38 @@ async function loadMatchInfo() {
     `${info.competition ? info.competition + ' — ' : ''}${info.venue} · a real Kelty Hearts match, replayed on a compressed clock.`;
 }
 loadMatchInfo();
+
+// ---- Match picker (which real match the simulation replays) ----
+async function loadMatchList() {
+  const res = await fetch('/api/matches');
+  const matches = await res.json();
+  document.getElementById('matchPicker').innerHTML =
+    matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+}
+loadMatchList();
+
+async function onMatchPicked() {
+  const matchId = document.getElementById('matchPicker').value;
+  await fetch('/api/select-match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matchId })
+  });
+
+  // Reset the simulation display for the newly picked match, same as a
+  // fresh page load would show, without starting the clock.
+  clearInterval(pollTimer);
+  seenEvents.clear();
+  document.getElementById('feed').innerHTML = '';
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('clockBadge').textContent = "--'";
+  document.getElementById('statusPill').textContent = 'Not started';
+  document.getElementById('statusPill').classList.remove('live');
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('startBtn').textContent = '▶ Start Live Match Simulation';
+
+  await loadMatchInfo();
+}
 
 // ---- Next match card + countdown ----
 let nextMatchData = null;
@@ -751,7 +790,12 @@ async function startSimulation() {
   document.getElementById('clockBadge').textContent = "0'";
   document.getElementById('feed').innerHTML = '';
 
-  await fetch('/api/start', { method: 'POST' });
+  const matchId = document.getElementById('matchPicker').value;
+  await fetch('/api/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matchId })
+  });
 
   pollTimer = setInterval(pollFeed, 1500);
 }

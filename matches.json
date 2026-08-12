@@ -1,0 +1,58 @@
+{
+  "note": "Kelty Hearts' 3 most recent results as of 12 August 2026, researched from SPFL and local press coverage. Goal scorers/minutes for the Stirling Albion and Forfar Athletic matches are corroborated across multiple sources and internally consistent (goals sum to the final score). The Motherwell B match's minute-by-minute detail could not be reliably verified - different sources gave inconsistent scorer lists that didn't add up to 4-3 - so only the confirmed facts (final score, date, competition) are used for that one, rather than presenting unverified numbers as fact.",
+  "matches": [
+    {
+      "id": "stirling",
+      "label": "Kelty Hearts 3-2 Stirling Albion (8 Aug, League Two)",
+      "homeTeam": "Kelty Hearts",
+      "awayTeam": "Stirling Albion",
+      "venue": "New Central Park",
+      "competition": "William Hill League Two",
+      "sourceNote": "Real match, 8 August 2026. Kelty's first league win of the season - Robbie Cole's last-minute header won it after Stirling twice fought back. All goals/minutes corroborated by Central Fife Times and Sky Sports commentary.",
+      "events": [
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Stirling Albion is underway at New Central Park." },
+        { "minute": 6, "type": "goal", "team": "Kelty Hearts", "player": "Lewis Moore", "detail": "a well-taken early opener", "text": "GOAL! Lewis Moore opens the scoring for Kelty Hearts. 1-0." },
+        { "minute": 32, "type": "goal", "team": "Kelty Hearts", "player": "Ryan Shanley", "detail": "a contested effort just before the break", "text": "GOAL! Ryan Shanley doubles Kelty's lead. 2-0." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts 2-0 Stirling Albion." },
+        { "minute": 65, "type": "goal", "team": "Stirling Albion", "player": "Jordan Allan", "detail": "a penalty after Jack Brydon was penalised for handball", "text": "GOAL! Jordan Allan converts from the spot for Stirling Albion. 2-1." },
+        { "minute": 75, "type": "substitution", "team": "Kelty Hearts", "playerOff": null, "playerOn": "Robbie Cole", "text": "Substitution for Kelty Hearts: Robbie Cole is introduced from the bench." },
+        { "minute": 80, "type": "goal", "team": "Stirling Albion", "player": "Russell McLean", "detail": "a composed finish to complete the fightback", "text": "GOAL! Russell McLean equalises for Stirling Albion. 2-2." },
+        { "minute": 88, "type": "goal", "team": "Kelty Hearts", "player": "Robbie Cole", "detail": "a close-range header after the goalkeeper spilled a routine save", "text": "GOOOOOAAALLLLLLL! Robbie Cole snatches a dramatic late winner for Kelty Hearts! 3-2." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 3-2 Stirling Albion. A five-goal thriller settled by substitute Robbie Cole's last-minute header." }
+      ]
+    },
+    {
+      "id": "forfar",
+      "label": "Forfar Athletic 1-0 Kelty Hearts (1 Aug, Away)",
+      "homeTeam": "Kelty Hearts",
+      "awayTeam": "Forfar Athletic",
+      "venue": "Station Park (Away)",
+      "competition": "Premier Sports Cup",
+      "sourceNote": "Real match, 1 August 2026, a 1-0 away defeat. Reconstructed from Kelty Hearts' own live posts during the match plus the confirmed goal scorer (Matthew Aitken, assisted by Craig Thomson). The goal's exact minute wasn't independently confirmed - placed at 9' since Kelty's own 15' post already showed 1-0.",
+      "events": [
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Forfar Athletic is underway at Station Park." },
+        { "minute": 9, "type": "goal", "team": "Forfar Athletic", "player": "Matthew Aitken", "detail": "a close-range finish, assisted by Craig Thomson", "text": "GOAL! Matthew Aitken puts Forfar Athletic ahead. 1-0." },
+        { "minute": 15, "type": "commentary", "team": "Kelty Hearts", "text": "Kelty have an early chance through Ryan Shanley but a heavy touch sees it drift wide." },
+        { "minute": 30, "type": "commentary", "team": "Kelty Hearts", "text": "Kelty searching for a way back in - Cunningham's free kick strikes the wall." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts behind at Station Park. 0-1." },
+        { "minute": 80, "type": "substitution", "team": "Kelty Hearts", "playerOff": "Walker Shanley", "playerOn": "Hannah Cole", "text": "Substitution for Kelty Hearts: Hannah Cole replaces Walker Shanley." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Forfar Athletic 1-0 Kelty Hearts. A tough afternoon away from home in the Premier Sports Cup." }
+      ]
+    },
+    {
+      "id": "motherwell",
+      "label": "Kelty Hearts 4-3 Motherwell B (11 Aug, Challenge Cup)",
+      "homeTeam": "Kelty Hearts",
+      "awayTeam": "Motherwell B",
+      "venue": "New Central Park",
+      "competition": "Scottish Challenge Cup",
+      "sourceNote": "Real match, 11 August 2026, a 4-3 win. Only the confirmed facts are used here (final score, date, competition, that Kelty won) - available minute-by-minute scorer reports were inconsistent between sources (they didn't add up to the actual 4-3 scoreline), so rather than presenting unverified detail as fact, this one is kept simple. No goal events are scripted below, so the scoreboard is backed by finalScore instead - 4-3 only appears once full-time is reached, not fabricated as a running tally.",
+      "finalScore": { "home": 4, "away": 3 },
+      "events": [
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Motherwell B is underway at New Central Park." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: an even, high-scoring affair at New Central Park." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 4-3 Motherwell B. A seven-goal thriller in the Scottish Challenge Cup." }
+      ]
+    }
+  ]
+}

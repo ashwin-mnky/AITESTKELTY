@@ -11,9 +11,15 @@ const app = express();
 const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
 const client = hasApiKey ? new Anthropic() : null;
 
-const matchData = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "match_data.json"), "utf-8")
+const matchesFile = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "matches.json"), "utf-8")
 );
+const MATCHES = matchesFile.matches;
+let selectedMatchId = MATCHES[0].id;
+function currentMatch() {
+  return MATCHES.find((m) => m.id === selectedMatchId);
+}
+
 const knownTeams = JSON.parse(
   fs.readFileSync(path.join(__dirname, "known_teams.json"), "utf-8")
 );
@@ -33,10 +39,34 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
-// Reset/start the simulated live match clock
+// List of real matches available to simulate, for the dashboard's dropdown
+app.get("/api/matches", (req, res) => {
+  res.json(MATCHES.map((m) => ({ id: m.id, label: m.label })));
+});
+
+// Switches which real match is loaded, without starting the clock - used
+// when the dropdown selection changes, so match-info/team names refresh
+// before the user clicks "Start".
+app.post("/api/select-match", (req, res) => {
+  if (!req.body || !MATCHES.some((m) => m.id === req.body.matchId)) {
+    return res.status(400).json({ error: "Unknown matchId" });
+  }
+  selectedMatchId = req.body.matchId;
+  simulationStartTime = null;
+  res.json({ selected: selectedMatchId });
+});
+
+// Reset/start the simulated live match clock. Optionally pass matchId to
+// pick which real match plays out - defaults to whatever was last selected.
 app.post("/api/start", (req, res) => {
+  if (req.body && req.body.matchId) {
+    if (!MATCHES.some((m) => m.id === req.body.matchId)) {
+      return res.status(400).json({ error: "Unknown matchId" });
+    }
+    selectedMatchId = req.body.matchId;
+  }
   simulationStartTime = Date.now();
-  res.json({ started: true });
+  res.json({ started: true, matchId: selectedMatchId });
 });
 
 // Returns events that have "happened" so far in simulated time, plus the
@@ -48,7 +78,8 @@ app.post("/api/start", (req, res) => {
 // half-time, full-time) still show, since those are Kelty's own account
 // reporting the state of their match, not news about the opponent.
 app.get("/api/live-feed", (req, res) => {
-  const lastMinute = matchData.events[matchData.events.length - 1].minute;
+  const match = currentMatch();
+  const lastMinute = match.events[match.events.length - 1].minute;
 
   if (!simulationStartTime) {
     return res.json({ events: [], finished: false, currentMinute: 0, score: { home: 0, away: 0 } });
@@ -57,30 +88,31 @@ app.get("/api/live-feed", (req, res) => {
   const elapsedSeconds = (Date.now() - simulationStartTime) / 1000;
   const elapsedMinutes = elapsedSeconds / SECONDS_PER_MINUTE;
 
-  const events = matchData.events
+  const events = match.events
     .filter((e) => e.minute <= elapsedMinutes)
-    .filter((e) => !e.team || e.team === matchData.homeTeam);
+    .filter((e) => !e.team || e.team === match.homeTeam);
 
   const finished = elapsedMinutes >= lastMinute;
   const currentMinute = Math.min(lastMinute, Math.floor(elapsedMinutes));
-  const score = scoreAtMinute(elapsedMinutes);
+  const score = scoreAtMinute(match, elapsedMinutes);
 
   res.json({ events, finished, currentMinute, score });
 });
 
 // Match metadata so the frontend never has to hardcode team names
 app.get("/api/match-info", (req, res) => {
+  const match = currentMatch();
   res.json({
-    homeTeam: matchData.homeTeam,
-    awayTeam: matchData.awayTeam,
-    venue: matchData.venue,
-    competition: matchData.competition,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    venue: match.venue,
+    competition: match.competition,
   });
 });
 
 // Generate Instagram / X / Facebook posts for a single match event.
 //
-// Normally this uses the loaded match_data.json (the simulated live match).
+// Normally this uses the currently selected match from matches.json.
 // But the caller can instead pass `context: { awayTeam, venue, score }` to
 // generate a post for a completely different, made-up match on the fly -
 // proving the template/generation logic isn't tied to any one game. Only
@@ -101,10 +133,10 @@ app.post("/api/generate-posts", async (req, res) => {
           score: context.score || { home: 0, away: 0 },
         }
       : {
-          homeTeam: matchData.homeTeam,
-          awayTeam: matchData.awayTeam,
-          venue: matchData.venue,
-          score: scoreAtMinute(event.minute),
+          homeTeam: currentMatch().homeTeam,
+          awayTeam: currentMatch().awayTeam,
+          venue: currentMatch().venue,
+          score: scoreAtMinute(currentMatch(), event.minute),
         };
 
     let posts = null;
@@ -168,15 +200,25 @@ Now write the three posts for the event above, in that exact structure.`;
   }
 });
 
-// Score at a given match minute, computed from goal events so far.
-function scoreAtMinute(minute) {
+// Score at a given point in a match, computed from goal events so far.
+//
+// Some real matches (e.g. Motherwell B, see matches.json) don't have
+// verified goal-by-goal detail - only the confirmed final score. For those,
+// no "goal" events are scripted at all, so the sum is always 0-0; once the
+// match has reached its last scripted minute (full-time), fall back to the
+// match's own finalScore instead of showing an incorrect 0-0.
+function scoreAtMinute(match, minute) {
   let home = 0;
   let away = 0;
-  for (const e of matchData.events) {
+  for (const e of match.events) {
     if (e.type === "goal" && e.minute <= minute) {
-      if (e.team === matchData.homeTeam) home++;
+      if (e.team === match.homeTeam) home++;
       else away++;
     }
+  }
+  if (home === 0 && away === 0 && match.finalScore) {
+    const lastMinute = match.events[match.events.length - 1].minute;
+    if (minute >= lastMinute) return match.finalScore;
   }
   return { home, away };
 }

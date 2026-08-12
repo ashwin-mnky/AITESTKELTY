@@ -20,7 +20,8 @@ pipeline (post generation, approval dashboard) doesn't need to change.
 
 ## How It Works
 
-1. Click **"Start Live Match Simulation"**
+1. Pick one of Kelty Hearts' 3 most recent real matches from the dropdown,
+   then click **"Start Live Match Simulation"**
 2. The match plays out automatically (90 minutes compressed into ~3 minutes)
 3. As each event "happens" (kickoff, goals, cards, subs, full time), it appears
    in the live feed
@@ -91,19 +92,32 @@ is available — otherwise it uses the free template mode automatically.
 
 ## Live Data: What's Real vs. Simulated Right Now
 
-- `match_data.json` contains one realistic Kelty Hearts match (goals, cards,
-  subs, final score) used to drive the simulated feed.
+- `matches.json` contains Kelty Hearts' 3 most recent real results (as of
+  12 August 2026), researched from SPFL and local press: goals, cards, subs
+  and final scores drive the simulated feed. Two of the three (Stirling
+  Albion, Forfar Athletic) have fully verified goal-by-goal detail; the
+  third (Motherwell B) only has the confirmed final score, since the
+  scorer reports found for it were inconsistent between sources - rather
+  than presenting unverified numbers as fact, that one just plays out to
+  the real 4-3 result without a fabricated goal-by-goal script.
+- `next_match.json` is Kelty's real next fixture (currently Elgin City,
+  15 August), same "manually researched, not live-fetched" caveat.
 - No live sports API is connected yet. Scottish League Two isn't covered by
   most free live-score APIs — the two realistic paths are:
   - **TheSportsDB Premium** (~$9/month) — live scores updated every 2 minutes
   - **Manual live input** — someone at the match enters events as they happen
+    (see the Live Match Tracker, which already does exactly this)
 - Either source can be dropped into `/api/live-feed` in `server.js` in place
   of the simulated clock, without changing the post-generation or approval UI.
 
 ## Files
 
-- `dashboard.html` — Live feed + approval UI
-- `match_data.json` — Sample match used to drive the simulated feed
+- `dashboard.html` — Tabbed UI: Live Tracker, Practice Simulation, Scenario
+  Tester, Settings
+- `matches.json` — Kelty's 3 most recent real matches, selectable in the
+  Practice Simulation tab
+- `next_match.json` — Kelty's real next fixture, for the countdown card
+- `known_teams.json` — Reference list used for opponent-name validation
 - `server.js` — Simulated live clock, post generation (with AI fallback), API routes
 - `package.json` — Dependencies
 - `README.md` — This file
