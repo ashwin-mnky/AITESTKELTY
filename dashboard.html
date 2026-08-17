@@ -125,6 +125,18 @@
   .btn-danger-outline:hover { opacity: 0.88; }
   .btn-danger-outline:active { transform: scale(0.97); }
 
+  /* ---------- Tutorial card ---------- */
+  .tutorial-card { position: relative; margin-bottom: 16px; padding-right: 48px; }
+  .tutorial-card h2 { font-size: 15px; margin-bottom: 6px; }
+  .tutorial-card strong { color: var(--ink); }
+  .tutorial-close {
+    position: absolute; top: 14px; right: 14px;
+    background: transparent; color: var(--muted);
+    font-size: 20px; line-height: 1; padding: 4px 9px;
+    border-radius: 8px; transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tutorial-close:hover { background: var(--track); color: var(--ink); }
+
   /* ---------- Notification bar ---------- */
   .notif-bar {
     display: flex; justify-content: space-between; align-items: center;
@@ -167,7 +179,10 @@
   .tab-btn:hover:not(.active) { color: var(--ink); }
   .tab-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-raised); }
   .tab-content { display: none; }
-  .tab-content.active { display: block; }
+  .tab-content.active { display: block; animation: tabFadeIn 0.2s ease-out; }
+  @keyframes tabFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .score-badge.pulse { animation: scorePulse 0.4s ease-out; }
+  @keyframes scorePulse { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
 
   /* ---------- Status / badges ---------- */
   .status-row {
@@ -249,6 +264,10 @@
   .post-platform { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--blue); margin-bottom: 7px; }
   .post-text { font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; color: var(--ink); margin-bottom: 10px; }
   .generating { color: var(--muted); font-size: 13.5px; font-style: italic; }
+  .error-note {
+    color: var(--danger); font-size: 13.5px; background: var(--danger-bg);
+    padding: 10px 14px; border-radius: var(--radius-sm);
+  }
 
   .approve-row { display: flex; gap: 10px; align-items: center; }
   .approve-btn {
@@ -308,9 +327,15 @@
   @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(30px); } }
 
   @media (max-width: 600px) {
+    body { padding: 28px 14px; }
     header h1 { font-size: 1.6em; }
-    .tab-bar { flex-wrap: wrap; }
-    .tab-btn { flex: 1 1 45%; }
+    .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn { flex: 0 0 auto; padding: 9px 16px; }
+    .card { padding: 20px 18px; }
+    .next-match-card { flex-direction: column; align-items: flex-start; }
+    .next-match-card .btn-danger-outline { width: 100%; text-align: center; }
+    .countdown-wrap { text-align: left; }
   }
 </style>
 </head>
@@ -322,6 +347,17 @@
     <h1>Kelty Hearts</h1>
     <p>AI-assisted draft posts for match events — a human always reviews before anything is copied out.</p>
   </header>
+
+  <div class="card tutorial-card" id="tutorialCard">
+    <button class="tutorial-close" onclick="dismissTutorial()" aria-label="Dismiss guide">&times;</button>
+    <h2>Quick guide</h2>
+    <p class="hint" style="margin-bottom:0;">
+      <strong>Live Tracker</strong> — use this during a real match, typing in events as they happen.
+      <strong>Simulation</strong> — watch a demo replay using Kelty's real past results.
+      <strong>Scenarios</strong> — proof the tool isn't hardcoded to one game.
+      <strong>Settings</strong> — customize how posts are worded.
+    </p>
+  </div>
 
   <div class="card notif-bar">
     <span id="notifStatusText">Get alerted even when you're on another tab or app</span>
@@ -503,6 +539,15 @@
 </div>
 
 <script>
+// ---- First-run tutorial card ----
+if (localStorage.getItem('keltyTutorialDismissed')) {
+  document.getElementById('tutorialCard').style.display = 'none';
+}
+function dismissTutorial() {
+  document.getElementById('tutorialCard').style.display = 'none';
+  localStorage.setItem('keltyTutorialDismissed', '1');
+}
+
 // ---- Tabs ----
 const TAB_NAMES = ['tracker', 'simulation', 'scenario', 'settings'];
 function switchTab(name) {
@@ -580,22 +625,32 @@ let homeTeam = 'Home';
 let awayTeam = 'Away';
 
 async function loadMatchInfo() {
-  const res = await fetch('/api/match-info');
-  const info = await res.json();
-  homeTeam = info.homeTeam;
-  awayTeam = info.awayTeam;
-  updateScore();
-  document.getElementById('subtitle').textContent =
-    `${info.competition ? info.competition + ' — ' : ''}${info.venue} · a real Kelty Hearts match, replayed on a compressed clock.`;
+  try {
+    const res = await fetch('/api/match-info');
+    if (!res.ok) throw new Error('bad response');
+    const info = await res.json();
+    homeTeam = info.homeTeam;
+    awayTeam = info.awayTeam;
+    updateScore();
+    document.getElementById('subtitle').textContent =
+      `${info.competition ? info.competition + ' — ' : ''}${info.venue} · a real Kelty Hearts match, replayed on a compressed clock.`;
+  } catch (err) {
+    document.getElementById('subtitle').textContent = "Couldn't load match info — check your connection and refresh the page.";
+  }
 }
 loadMatchInfo();
 
 // ---- Match picker (which real match the simulation replays) ----
 async function loadMatchList() {
-  const res = await fetch('/api/matches');
-  const matches = await res.json();
-  document.getElementById('matchPicker').innerHTML =
-    matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+  try {
+    const res = await fetch('/api/matches');
+    if (!res.ok) throw new Error('bad response');
+    const matches = await res.json();
+    document.getElementById('matchPicker').innerHTML =
+      matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+  } catch (err) {
+    document.getElementById('matchPicker').innerHTML = `<option>Couldn't load matches — refresh the page</option>`;
+  }
 }
 loadMatchList();
 
@@ -626,14 +681,20 @@ async function onMatchPicked() {
 let nextMatchData = null;
 
 async function loadNextMatch() {
-  const res = await fetch('/api/next-match');
-  nextMatchData = await res.json();
-  const sourceTag = nextMatchData.source === 'live' ? ' 🟢 live' : ' ⚠ placeholder';
-  document.getElementById('nextFixture').textContent = `Kelty Hearts vs ${nextMatchData.opponent}`;
-  document.getElementById('nextVenue').textContent = `${nextMatchData.competition || ''} · ${nextMatchData.venue} ·${sourceTag}`;
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
-  prefillTrackerFromNextMatch();
+  try {
+    const res = await fetch('/api/next-match');
+    if (!res.ok) throw new Error('bad response');
+    nextMatchData = await res.json();
+    const sourceTag = nextMatchData.source === 'live' ? ' 🟢 live' : ' ⚠ placeholder';
+    document.getElementById('nextFixture').textContent = `Kelty Hearts vs ${nextMatchData.opponent}`;
+    document.getElementById('nextVenue').textContent = `${nextMatchData.competition || ''} · ${nextMatchData.venue} ·${sourceTag}`;
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    prefillTrackerFromNextMatch();
+  } catch (err) {
+    document.getElementById('nextFixture').textContent = "Couldn't load — check your connection";
+    document.getElementById('nextVenue').textContent = '';
+  }
 }
 loadNextMatch();
 
@@ -662,9 +723,14 @@ function updateCountdown() {
 let knownTeamsList = [];
 
 async function loadKnownTeams() {
-  const res = await fetch('/api/known-teams');
-  const data = await res.json();
-  knownTeamsList = data.teams.map(t => t.toLowerCase());
+  try {
+    const res = await fetch('/api/known-teams');
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    knownTeamsList = data.teams.map(t => t.toLowerCase());
+  } catch (err) {
+    // Non-critical: the warning just won't fire until this loads successfully.
+  }
 }
 loadKnownTeams();
 
@@ -719,7 +785,8 @@ function updateLiveScoreBadge() {
 
 async function addLiveEvent() {
   const type = document.getElementById('lType').value;
-  const minute = parseInt(document.getElementById('lMinute').value, 10);
+  const rawMinute = parseInt(document.getElementById('lMinute').value, 10);
+  const minute = Number.isFinite(rawMinute) && rawMinute > 0 ? rawMinute : 1;
   const opponent = document.getElementById('lOpponent').value || 'Opponent';
   const venue = document.getElementById('lVenue').value || 'New Central Park';
   const teamSide = document.getElementById('lTeam').value;
@@ -742,6 +809,12 @@ async function addLiveEvent() {
   }
 
   updateLiveScoreBadge();
+  if (type === 'goal') {
+    const badge = document.getElementById('liveScoreBadge');
+    badge.classList.remove('pulse');
+    void badge.offsetWidth; // restart the animation even if it's still mid-pulse
+    badge.classList.add('pulse');
+  }
 
   const context = { awayTeam: opponent, venue, score: { home: liveHome, away: liveAway } };
 
@@ -759,22 +832,34 @@ async function addLiveEvent() {
   `;
   document.getElementById('liveFeed').prepend(card);
 
-  const res = await fetch('/api/generate-posts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event, context, templates: getTemplates() })
-  });
-  const data = await res.json();
-  renderPosts(id, data.posts);
-  alertNewPost('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
+  try {
+    const res = await fetch('/api/generate-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, context, templates: getTemplates() })
+    });
+    if (!res.ok) throw new Error(`Server error (${res.status})`);
+    const data = await res.json();
+    renderPosts(id, data.posts);
+    alertNewPost('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
+  } catch (err) {
+    document.getElementById('posts-' + id).innerHTML =
+      `<div class="error-note">Couldn't reach the server — check your connection and try logging this event again.</div>`;
+  }
 }
 
 let defaultTemplates = {};
 
 async function loadTemplateEditor() {
-  const res = await fetch('/api/default-templates');
-  defaultTemplates = await res.json();
-  renderTemplateFields(getTemplates());
+  try {
+    const res = await fetch('/api/default-templates');
+    if (!res.ok) throw new Error('bad response');
+    defaultTemplates = await res.json();
+    renderTemplateFields(getTemplates());
+  } catch (err) {
+    document.getElementById('templateFields').innerHTML =
+      `<div class="error-note">Couldn't load wording templates — check your connection and refresh the page.</div>`;
+  }
 }
 loadTemplateEditor();
 
@@ -898,25 +983,30 @@ async function generateTestPost() {
   const resultBox = document.getElementById('testResult');
   resultBox.innerHTML = '<div class="generating">Generating…</div>';
 
-  const res = await fetch('/api/generate-posts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event: scenario.event, context: scenario.context, templates: getTemplates() })
-  });
-  const data = await res.json();
+  try {
+    const res = await fetch('/api/generate-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: scenario.event, context: scenario.context, templates: getTemplates() })
+    });
+    if (!res.ok) throw new Error(`Server error (${res.status})`);
+    const data = await res.json();
 
-  const platforms = [
-    { key: 'instagram', label: 'Instagram' },
-    { key: 'x', label: 'X / Twitter' },
-    { key: 'facebook', label: 'Facebook' }
-  ];
-  resultBox.innerHTML = `<div class="posts-grid">${platforms.map(p => `
-    <div class="post-box">
-      <div class="post-platform">${p.label}</div>
-      <div class="post-text">${(data.posts[p.key] || '').replace(/</g,'&lt;')}</div>
-    </div>
-  `).join('')}</div>`;
-  alertNewPost('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
+    const platforms = [
+      { key: 'instagram', label: 'Instagram' },
+      { key: 'x', label: 'X / Twitter' },
+      { key: 'facebook', label: 'Facebook' }
+    ];
+    resultBox.innerHTML = `<div class="posts-grid">${platforms.map(p => `
+      <div class="post-box">
+        <div class="post-platform">${p.label}</div>
+        <div class="post-text">${(data.posts[p.key] || '').replace(/</g,'&lt;')}</div>
+      </div>
+    `).join('')}</div>`;
+    alertNewPost('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
+  } catch (err) {
+    resultBox.innerHTML = `<div class="error-note">Couldn't reach the server — check your connection and try again.</div>`;
+  }
 }
 
 function addEventCard(event) {
