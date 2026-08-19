@@ -1,7 +1,7 @@
 {
-  "note": "PLACEHOLDER fixture data, but researched and confirmed accurate as of 12 August 2026 (SPFL, Flashscore). This is not connected to a live fixtures feed - sports data sites are blocked from this environment - so this file has to be updated manually by club staff before each match.",
-  "opponent": "Elgin City",
-  "venue": "Borough Briggs (Away)",
+  "note": "PLACEHOLDER fixture data, but researched and confirmed accurate as of 19 August 2026 (SPFL, Soccerway). This is not connected to a live fixtures feed - sports data sites are blocked from this environment - so this file has to be updated manually by club staff before each match.",
+  "opponent": "Dumbarton",
+  "venue": "New Central Park",
   "competition": "William Hill League Two",
-  "kickoff": "2026-08-15T15:00:00+01:00"
+  "kickoff": "2026-08-22T15:00:00+01:00"
 }

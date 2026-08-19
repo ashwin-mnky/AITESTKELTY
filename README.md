@@ -93,15 +93,18 @@ is available — otherwise it uses the free template mode automatically.
 ## Live Data: What's Real vs. Simulated Right Now
 
 - `matches.json` contains Kelty Hearts' 3 most recent real results (as of
-  12 August 2026), researched from SPFL and local press: goals, cards, subs
-  and final scores drive the simulated feed. Two of the three (Stirling
-  Albion, Forfar Athletic) have fully verified goal-by-goal detail; the
+  19 August 2026), researched from SPFL, Sky Sports and local press: goals,
+  cards, subs and final scores drive the simulated feed. Two of the three
+  (Stirling Albion, Elgin City) have fully verified goal-by-goal detail; the
   third (Motherwell B) only has the confirmed final score, since the
   scorer reports found for it were inconsistent between sources - rather
   than presenting unverified numbers as fact, that one just plays out to
   the real 4-3 result without a fabricated goal-by-goal script.
-- `next_match.json` is Kelty's real next fixture (currently Elgin City,
-  15 August), same "manually researched, not live-fetched" caveat.
+- `next_match.json` is Kelty's real next fixture (currently Dumbarton,
+  22 August, home), same "manually researched, not live-fetched" caveat -
+  this needs updating by hand after each match, which is exactly what
+  happened here: the previous Elgin City fixture had since been played
+  (a 4-1 defeat) and was moved into `matches.json` as a completed result.
 - No live sports API is connected yet. Scottish League Two isn't covered by
   most free live-score APIs — the two realistic paths are:
   - **TheSportsDB Premium** (~$9/month) — live scores updated every 2 minutes

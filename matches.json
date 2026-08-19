@@ -1,5 +1,5 @@
 {
-  "note": "Kelty Hearts' 3 most recent results as of 12 August 2026, researched from SPFL and local press coverage. Goal scorers/minutes for the Stirling Albion and Forfar Athletic matches are corroborated across multiple sources and internally consistent (goals sum to the final score). The Motherwell B match's minute-by-minute detail could not be reliably verified - different sources gave inconsistent scorer lists that didn't add up to 4-3 - so only the confirmed facts (final score, date, competition) are used for that one, rather than presenting unverified numbers as fact.",
+  "note": "Kelty Hearts' 3 most recent results as of 19 August 2026, researched from SPFL, Sky Sports, Flashscore and local press coverage. Goal scorers for Stirling Albion and Elgin City are corroborated across multiple sources; exact minutes for the Elgin City match varied slightly between sources (e.g. 29' vs 31') so one representative minute per goal was used - treat those as approximate, not to-the-second. The Motherwell B match's minute-by-minute detail could not be reliably verified - different sources gave inconsistent scorer lists that didn't add up to 4-3 - so only the confirmed facts (final score, date, competition) are used for that one, rather than presenting unverified numbers as fact.",
   "matches": [
     {
       "id": "stirling",
@@ -22,36 +22,37 @@
       ]
     },
     {
-      "id": "forfar",
-      "label": "Forfar Athletic 1-0 Kelty Hearts (1 Aug, Away)",
+      "id": "elgin",
+      "label": "Elgin City 4-1 Kelty Hearts (15 Aug, Away)",
       "homeTeam": "Kelty Hearts",
-      "awayTeam": "Forfar Athletic",
-      "venue": "Station Park (Away)",
-      "competition": "Premier Sports Cup",
-      "sourceNote": "Real match, 1 August 2026, a 1-0 away defeat. Reconstructed from Kelty Hearts' own live posts during the match plus the confirmed goal scorer (Matthew Aitken, assisted by Craig Thomson). The goal's exact minute wasn't independently confirmed - placed at 9' since Kelty's own 15' post already showed 1-0.",
+      "awayTeam": "Elgin City",
+      "venue": "Borough Briggs (Away)",
+      "competition": "William Hill League Two",
+      "sourceNote": "Real match, 15 August 2026, a 4-1 away defeat. Scorers and the Cole goal sequence corroborated across Sky Sports, Flashscore, the Central Fife Times and Kelty Hearts' own club site. Goal minutes varied slightly between sources (e.g. 29' vs 31', 84' vs 85') - one representative minute was used per goal, so treat them as approximate rather than to-the-second.",
       "events": [
-        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Forfar Athletic is underway at Station Park." },
-        { "minute": 9, "type": "goal", "team": "Forfar Athletic", "player": "Matthew Aitken", "detail": "a close-range finish, assisted by Craig Thomson", "text": "GOAL! Matthew Aitken puts Forfar Athletic ahead. 1-0." },
-        { "minute": 15, "type": "commentary", "team": "Kelty Hearts", "text": "Kelty have an early chance through Ryan Shanley but a heavy touch sees it drift wide." },
-        { "minute": 30, "type": "commentary", "team": "Kelty Hearts", "text": "Kelty searching for a way back in - Cunningham's free kick strikes the wall." },
-        { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts behind at Station Park. 0-1." },
-        { "minute": 80, "type": "substitution", "team": "Kelty Hearts", "playerOff": "Walker Shanley", "playerOn": "Hannah Cole", "text": "Substitution for Kelty Hearts: Hannah Cole replaces Walker Shanley." },
-        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Forfar Athletic 1-0 Kelty Hearts. A tough afternoon away from home in the Premier Sports Cup." }
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Elgin City is underway at Borough Briggs." },
+        { "minute": 30, "type": "goal", "team": "Elgin City", "player": "Kane Hester", "detail": "a left-footed shot from the left side of the box, assisted by Russell Dingwall", "text": "GOAL! Kane Hester puts Elgin City ahead. 0-1." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: Elgin City lead at Borough Briggs. 0-1." },
+        { "minute": 51, "type": "goal", "team": "Elgin City", "player": "Lewis Mackay", "detail": "a right-footed finish from the centre of the box", "text": "GOAL! Lewis Mackay doubles Elgin City's lead. 0-2." },
+        { "minute": 71, "type": "goal", "team": "Kelty Hearts", "player": "Robbie Cole", "detail": "a rebound after Falconer's cross-shot was pushed out, moments after coming on as a substitute", "text": "GOAL! Robbie Cole pulls one back for Kelty Hearts. 1-2." },
+        { "minute": 81, "type": "goal", "team": "Elgin City", "player": "Russell Dingwall", "detail": "a left-footed finish", "text": "GOAL! Russell Dingwall restores Elgin City's two-goal cushion. 1-3." },
+        { "minute": 85, "type": "goal", "team": "Elgin City", "player": "Jack MacIver", "detail": "assisted by Aaron Cummings", "text": "GOAL! Jack MacIver completes the scoring for Elgin City. 1-4." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Elgin City 4-1 Kelty Hearts. A tough afternoon on the road - Robbie Cole's goal was Kelty's only reply." }
       ]
     },
     {
       "id": "motherwell",
-      "label": "Kelty Hearts 4-3 Motherwell B (11 Aug, Challenge Cup)",
+      "label": "Kelty Hearts 4-3 Motherwell B (11 Aug, KDM Evolution Trophy)",
       "homeTeam": "Kelty Hearts",
       "awayTeam": "Motherwell B",
       "venue": "New Central Park",
-      "competition": "Scottish Challenge Cup",
-      "sourceNote": "Real match, 11 August 2026, a 4-3 win. Only the confirmed facts are used here (final score, date, competition, that Kelty won) - available minute-by-minute scorer reports were inconsistent between sources (they didn't add up to the actual 4-3 scoreline), so rather than presenting unverified detail as fact, this one is kept simple. No goal events are scripted below, so the scoreboard is backed by finalScore instead - 4-3 only appears once full-time is reached, not fabricated as a running tally.",
+      "competition": "KDM Evolution Trophy",
+      "sourceNote": "Real match, 11 August 2026, a 4-3 win. Competition confirmed as the KDM Evolution Trophy (was previously mislabelled Scottish Challenge Cup - corrected 19 August). Only the confirmed facts are used here (final score, date, competition, that Kelty won) - available minute-by-minute scorer reports were inconsistent between sources (they didn't add up to the actual 4-3 scoreline), so rather than presenting unverified detail as fact, this one is kept simple. No goal events are scripted below, so the scoreboard is backed by finalScore instead - 4-3 only appears once full-time is reached, not fabricated as a running tally.",
       "finalScore": { "home": 4, "away": 3 },
       "events": [
         { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Motherwell B is underway at New Central Park." },
         { "minute": 45, "type": "halftime", "text": "Half-time: an even, high-scoring affair at New Central Park." },
-        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 4-3 Motherwell B. A seven-goal thriller in the Scottish Challenge Cup." }
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 4-3 Motherwell B. A seven-goal thriller in the KDM Evolution Trophy." }
       ]
     }
   ]
