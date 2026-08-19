@@ -345,7 +345,7 @@
 
   <header>
     <h1>Kelty Hearts</h1>
-    <p>AI-assisted draft posts for match events — a human always reviews before anything is copied out.</p>
+    <p>AI-assisted draft posts for match events. A human always reviews before anything is copied out.</p>
   </header>
 
   <div class="card tutorial-card" id="tutorialCard">
@@ -389,7 +389,7 @@
     <div class="card">
       <h2>Live Match Tracker</h2>
       <div class="hint">
-        Use this DURING a real match — type in each event as it actually happens, in real time. There's no
+        Use this DURING a real match. Type in each event as it actually happens, in real time. There's no
         script and no timer here; you control the pace, and the score updates automatically as you log goals.
       </div>
 
@@ -479,11 +479,11 @@
         </div>
         <button class="btn-primary" id="startBtn" onclick="startSimulation()">Start Simulation</button>
       </div>
-      <div class="sim-caption">⚠ Simulated clock for demo purposes — not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes). These are Kelty Hearts' 3 most recent real results — pick any of them.</div>
+      <div class="sim-caption">⚠ Simulated clock for demo purposes, not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes). These are Kelty Hearts' 3 most recent real results, pick any of them.</div>
     </div>
 
     <div class="feed" id="feed" style="margin-top:16px;"></div>
-    <div class="empty-state" id="emptyState">Click "Start Simulation" to begin. Events will appear here as they happen — just like a real match feed.</div>
+    <div class="empty-state" id="emptyState">Click "Start Simulation" to begin. Events will appear here as they happen, just like a real match feed.</div>
   </div>
 
   <!-- ===== TAB: Scenario Tester ===== -->
@@ -491,7 +491,7 @@
     <div class="card">
       <h2>Prove It Works for Different Matches</h2>
       <div class="hint">
-        Pick any of these 5 scenarios — different opponents, different event types, nothing typed in live — and
+        Pick any of these 5 scenarios (different opponents, different event types, nothing typed in live) and
         generate a post. Same generator code every time, zero per-match changes. Good for showing your manager
         it isn't hardcoded to one game.
       </div>
@@ -524,7 +524,7 @@
         <code>{player}</code>, <code>{minute}</code>, <code>{team}</code>,
         <code>{opponent}</code>, <code>{detail}</code>, <code>{cardType}</code>,
         <code>{playerOn}</code>, <code>{playerOff}</code>, <code>{score}</code>,
-        <code>{hashtag}</code>, <code>{venue}</code> — they'll be swapped in
+        <code>{hashtag}</code>, <code>{venue}</code>. They'll be swapped in
         automatically for each real event, whatever the player's name is.
       </div>
       <div id="templateFields"></div>
@@ -590,7 +590,7 @@ function updateNotifButton() {
     status.textContent = '✅ Desktop notifications are on';
     btn.style.display = 'none';
   } else if (Notification.permission === 'denied') {
-    status.textContent = "🔕 Desktop notifications are blocked — check your browser's site settings";
+    status.textContent = "🔕 Desktop notifications are blocked. Check your browser's site settings";
     btn.style.display = 'none';
   } else {
     status.textContent = "Get alerted even when you're on another tab or app";
@@ -633,9 +633,9 @@ async function loadMatchInfo() {
     awayTeam = info.awayTeam;
     updateScore();
     document.getElementById('subtitle').textContent =
-      `${info.competition ? info.competition + ' — ' : ''}${info.venue} · a real Kelty Hearts match, replayed on a compressed clock.`;
+      `${info.competition ? info.competition + ' · ' : ''}${info.venue} · a real Kelty Hearts match, replayed on a compressed clock.`;
   } catch (err) {
-    document.getElementById('subtitle').textContent = "Couldn't load match info — check your connection and refresh the page.";
+    document.getElementById('subtitle').textContent = "Couldn't load match info. Check your connection and refresh the page.";
   }
 }
 loadMatchInfo();
@@ -649,7 +649,7 @@ async function loadMatchList() {
     document.getElementById('matchPicker').innerHTML =
       matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
   } catch (err) {
-    document.getElementById('matchPicker').innerHTML = `<option>Couldn't load matches — refresh the page</option>`;
+    document.getElementById('matchPicker').innerHTML = `<option>Couldn't load matches, refresh the page</option>`;
   }
 }
 loadMatchList();
@@ -692,7 +692,7 @@ async function loadNextMatch() {
     setInterval(updateCountdown, 1000);
     prefillTrackerFromNextMatch();
   } catch (err) {
-    document.getElementById('nextFixture').textContent = "Couldn't load — check your connection";
+    document.getElementById('nextFixture').textContent = "Couldn't load. Check your connection";
     document.getElementById('nextVenue').textContent = '';
   }
 }
@@ -745,7 +745,7 @@ function validateTeamName(inputId, warningId) {
   if (known) {
     warningEl.classList.remove('show');
   } else {
-    warningEl.textContent = `⚠ "${value}" isn't in our known-opponents list — double check the spelling, or ignore this if it's a new/unlisted opponent.`;
+    warningEl.textContent = `⚠ "${value}" isn't in our known-opponents list. Double check the spelling, or ignore this if it's a new/unlisted opponent.`;
     warningEl.classList.add('show');
   }
 }
@@ -844,7 +844,7 @@ async function addLiveEvent() {
     alertNewPost('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
   } catch (err) {
     document.getElementById('posts-' + id).innerHTML =
-      `<div class="error-note">Couldn't reach the server — check your connection and try logging this event again.</div>`;
+      `<div class="error-note">Couldn't reach the server. Check your connection and try logging this event again.</div>`;
   }
 }
 
@@ -858,7 +858,7 @@ async function loadTemplateEditor() {
     renderTemplateFields(getTemplates());
   } catch (err) {
     document.getElementById('templateFields').innerHTML =
-      `<div class="error-note">Couldn't load wording templates — check your connection and refresh the page.</div>`;
+      `<div class="error-note">Couldn't load wording templates. Check your connection and refresh the page.</div>`;
   }
 }
 loadTemplateEditor();
@@ -1005,7 +1005,7 @@ async function generateTestPost() {
     `).join('')}</div>`;
     alertNewPost('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
   } catch (err) {
-    resultBox.innerHTML = `<div class="error-note">Couldn't reach the server — check your connection and try again.</div>`;
+    resultBox.innerHTML = `<div class="error-note">Couldn't reach the server. Check your connection and try again.</div>`;
   }
 }
 
@@ -1117,7 +1117,7 @@ function previewPhoto(input, id) {
 function approve(btn, id) {
   const img = document.getElementById(`photoPreview-${id}`);
   const hasPhoto = img && img.style.display !== 'none' && img.src;
-  btn.parentElement.innerHTML = `<span class="approved-tag">✓ Approved${hasPhoto ? ' (with photo)' : ''} — ready to post</span>`;
+  btn.parentElement.innerHTML = `<span class="approved-tag">✓ Approved${hasPhoto ? ' (with photo)' : ''}, ready to post</span>`;
 }
 </script>
 </body>
