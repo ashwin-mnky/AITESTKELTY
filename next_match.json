@@ -1,7 +1,7 @@
 {
-  "note": "PLACEHOLDER fixture data, but researched and confirmed accurate as of 19 August 2026 (SPFL, Soccerway). This is not connected to a live fixtures feed - sports data sites are blocked from this environment - so this file has to be updated manually by club staff before each match.",
-  "opponent": "Dumbarton",
-  "venue": "New Central Park",
+  "note": "PLACEHOLDER fixture data, but researched and cross-checked as of 9 September 2026 (search-engine coverage of SPFL's fixture list and other aggregators; this sandbox can't fetch spfl.co.uk directly to verify at the source). One research pass flagged a possible mix-up with a second Cumbernauld Colts fixture on the same date - Clyde was kept as the better-corroborated answer and fits the normal weekly League Two schedule, but this is worth a quick sanity check against spfl.co.uk if you get a chance before relying on it.",
+  "opponent": "Clyde",
+  "venue": "Broadwood Stadium (Away)",
   "competition": "William Hill League Two",
-  "kickoff": "2026-08-22T15:00:00+01:00"
+  "kickoff": "2026-09-12T15:00:00+01:00"
 }

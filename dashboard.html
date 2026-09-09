@@ -479,7 +479,7 @@
         </div>
         <button class="btn-primary" id="startBtn" onclick="startSimulation()">Start Simulation</button>
       </div>
-      <div class="sim-caption">⚠ Simulated clock for demo purposes, not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes). These are Kelty Hearts' 3 most recent real results, pick any of them.</div>
+      <div class="sim-caption">⚠ Simulated clock for demo purposes, not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes). These are Kelty Hearts' 3 most recent real results, pick any of them. <span id="matchesSourceBadge"></span></div>
     </div>
 
     <div class="feed" id="feed" style="margin-top:16px;"></div>
@@ -645,9 +645,13 @@ async function loadMatchList() {
   try {
     const res = await fetch('/api/matches');
     if (!res.ok) throw new Error('bad response');
-    const matches = await res.json();
+    const data = await res.json();
     document.getElementById('matchPicker').innerHTML =
-      matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+      data.matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+    const badge = document.getElementById('matchesSourceBadge');
+    if (badge) {
+      badge.textContent = data.source === 'live' ? '🟢 live from API-Football' : '⚠ placeholder (manually updated)';
+    }
   } catch (err) {
     document.getElementById('matchPicker').innerHTML = `<option>Couldn't load matches, refresh the page</option>`;
   }

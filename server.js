@@ -14,7 +14,10 @@ const client = hasApiKey ? new Anthropic() : null;
 const matchesFile = JSON.parse(
   fs.readFileSync(path.join(__dirname, "matches.json"), "utf-8")
 );
-const MATCHES = matchesFile.matches;
+// `MATCHES` is reassigned (not const) because a successful live refresh
+// replaces it wholesale - see refreshMatches() below.
+let MATCHES = matchesFile.matches;
+let matchesSource = "placeholder";
 let selectedMatchId = MATCHES[0].id;
 function currentMatch() {
   return MATCHES.find((m) => m.id === selectedMatchId);
@@ -39,9 +42,15 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
-// List of real matches available to simulate, for the dashboard's dropdown
+// List of real matches available to simulate, for the dashboard's dropdown.
+// `source` tells the UI whether this list came from a live API-Football
+// fetch just now, or the manually-maintained matches.json fallback - same
+// honesty convention as /api/next-match.
 app.get("/api/matches", (req, res) => {
-  res.json(MATCHES.map((m) => ({ id: m.id, label: m.label })));
+  res.json({
+    matches: MATCHES.map((m) => ({ id: m.id, label: m.label })),
+    source: matchesSource,
+  });
 });
 
 // Switches which real match is loaded, without starting the clock - used
@@ -352,6 +361,184 @@ app.get("/api/next-match", async (req, res) => {
     res.json({ ...nextMatch, source: "placeholder" });
   }
 });
+
+// ---- Live "3 most recent results" via API-Football (optional) ----
+//
+// Requires an API_FOOTBALL_KEY env var (free tier: dashboard.api-football.com,
+// confirmed during research to cover Scottish League Two). Without a key,
+// MATCHES just stays whatever matches.json says - the app works exactly as
+// it did before this was added. With a key, this fetches Kelty's 3 most
+// recently finished fixtures and replaces MATCHES with them, so the
+// Simulation tab always reflects real, current results instead of needing
+// someone to manually edit matches.json after every game.
+//
+// IMPORTANT: this sandbox's network proxy blocks api-sports.io the same way
+// it blocks every other sports-data domain used in this project (see
+// fetchLiveNextMatch above), so the live branch below has never actually
+// been exercised end-to-end here - only written carefully against
+// API-Football's documented v3 shape and defensively error-handled so any
+// unexpected response just falls back rather than crashing. Test it for
+// real once a key is set.
+const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY;
+let cachedKeltyApiFootballTeamId = null;
+
+async function apiFootballRequest(pathAndQuery) {
+  const response = await fetch(`https://v3.football.api-sports.io${pathAndQuery}`, {
+    headers: { "x-apisports-key": API_FOOTBALL_KEY },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error(`API-Football returned ${response.status}`);
+  const data = await response.json();
+  if (data.errors && Object.keys(data.errors).length) {
+    throw new Error(`API-Football error: ${JSON.stringify(data.errors)}`);
+  }
+  return data.response;
+}
+
+async function getKeltyApiFootballTeamId() {
+  if (cachedKeltyApiFootballTeamId) return cachedKeltyApiFootballTeamId;
+  const teams = await apiFootballRequest("/teams?search=Kelty Hearts");
+  const match = teams && teams[0];
+  if (!match) throw new Error("Kelty Hearts not found in API-Football team search");
+  cachedKeltyApiFootballTeamId = match.team.id;
+  return cachedKeltyApiFootballTeamId;
+}
+
+// Picks a plain, honest phrase for a goal based on the score right after it -
+// not trying to match the flair of the hand-written historical matches
+// (that took real research per goal), just avoiding nonsense like "equalises"
+// when a team is actually 3 goals up.
+function describeGoal(scorerIsKelty, scoreAfter) {
+  const { home, away } = scoreAfter;
+  const scorerScore = scorerIsKelty ? home : away;
+  const otherScore = scorerIsKelty ? away : home;
+  if (scorerScore === 1 && otherScore === 0) return "opens the scoring";
+  if (scorerScore === otherScore) return "equalises";
+  if (scorerScore === otherScore + 1) return "puts them back in front";
+  return "extends the lead";
+}
+
+async function fetchOneApiFootballMatch(fixture, keltyTeamId) {
+  const isHome = fixture.teams.home.id === keltyTeamId;
+  const homeTeam = "Kelty Hearts"; // app-wide convention: homeTeam field is always Kelty, see matchHashtag/scoreAtMinute usage
+  const awayTeam = isHome ? fixture.teams.away.name : fixture.teams.home.name;
+  const venueName = fixture.fixture.venue && fixture.fixture.venue.name ? fixture.fixture.venue.name : "the ground";
+  const venue = `${venueName}${isHome ? "" : " (Away)"}`;
+  const competition = fixture.league.name;
+
+  const rawEvents = (await apiFootballRequest(`/fixtures/events?fixture=${fixture.fixture.id}`)) || [];
+
+  const events = [{ minute: 1, type: "kickoff", text: `Kick-off! ${homeTeam} vs ${awayTeam} is underway at ${venueName}.` }];
+  let runningHome = 0, runningAway = 0;
+  let halftimeAdded = false;
+
+  for (const ev of rawEvents.sort((a, b) => (a.time.elapsed || 0) - (b.time.elapsed || 0))) {
+    const minute = ev.time.elapsed || 1;
+    const eventTeamIsKelty = ev.team.id === keltyTeamId;
+    const eventTeamName = eventTeamIsKelty ? homeTeam : awayTeam;
+
+    if (!halftimeAdded && minute >= 45) {
+      events.push({
+        minute: 45,
+        type: "halftime",
+        text: `Half-time: ${runningHome === runningAway ? "level" : runningHome > runningAway ? `${homeTeam} lead` : `${awayTeam} lead`} at ${venueName}. ${runningHome}-${runningAway}.`,
+      });
+      halftimeAdded = true;
+    }
+
+    if (ev.type === "Goal" && ev.detail !== "Missed Penalty") {
+      if (eventTeamIsKelty) runningHome++; else runningAway++;
+      const player = ev.player && ev.player.name ? ev.player.name : "Unknown";
+      events.push({
+        minute,
+        type: "goal",
+        team: eventTeamName,
+        player,
+        detail: describeGoal(eventTeamIsKelty, { home: runningHome, away: runningAway }),
+        text: `GOAL! ${player} scores for ${eventTeamName}. ${runningHome}-${runningAway}.`,
+      });
+    } else if (ev.type === "Card") {
+      const player = ev.player && ev.player.name ? ev.player.name : "Unknown";
+      events.push({
+        minute,
+        type: "card",
+        team: eventTeamName,
+        player,
+        cardType: ev.detail && ev.detail.includes("Red") ? "Red" : "Yellow",
+        text: `${ev.detail || "Card"} for ${player} (${eventTeamName}).`,
+      });
+    } else if (ev.type === "subst") {
+      events.push({
+        minute,
+        type: "substitution",
+        team: eventTeamName,
+        playerOff: ev.assist && ev.assist.name ? ev.assist.name : "",
+        playerOn: ev.player && ev.player.name ? ev.player.name : "",
+        text: `Substitution for ${eventTeamName}.`,
+      });
+    }
+  }
+
+  if (!halftimeAdded) {
+    events.push({ minute: 45, type: "halftime", text: `Half-time at ${venueName}. ${runningHome}-${runningAway}.` });
+  }
+
+  const finalHome = fixture.goals.home ?? runningHome;
+  const finalAway = fixture.goals.away ?? runningAway;
+  const result = finalHome > finalAway ? "win" : finalHome < finalAway ? "defeat" : "draw";
+  events.push({
+    minute: 90,
+    type: "fulltime",
+    text: `FULL TIME: ${homeTeam} ${finalHome}-${finalAway} ${awayTeam}. A ${result} for ${homeTeam}.`,
+  });
+
+  return {
+    id: `live-${fixture.fixture.id}`,
+    label: `${homeTeam} ${finalHome}-${finalAway} ${awayTeam} (${new Date(fixture.fixture.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${isHome ? "Home" : "Away"})`,
+    homeTeam,
+    awayTeam,
+    venue,
+    competition,
+    sourceNote: "Fetched live from API-Football - goal minutes and scorers come directly from the API, not hand-researched.",
+    events,
+  };
+}
+
+async function fetchLiveRecentMatches() {
+  if (!API_FOOTBALL_KEY) throw new Error("No API_FOOTBALL_KEY set");
+  const teamId = await getKeltyApiFootballTeamId();
+  const fixtures = await apiFootballRequest(`/fixtures?team=${teamId}&last=3&status=FT`);
+  if (!fixtures || fixtures.length === 0) throw new Error("No finished fixtures returned");
+
+  const sorted = fixtures.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+  const matches = [];
+  for (const fixture of sorted) {
+    matches.push(await fetchOneApiFootballMatch(fixture, teamId));
+  }
+  return matches;
+}
+
+// Attempts a live refresh; on any failure, leaves MATCHES untouched (whatever
+// it currently is - the matches.json fallback, or last successful live
+// fetch) and just logs why, same as every other "try live" path here.
+async function refreshMatches() {
+  try {
+    const live = await fetchLiveRecentMatches();
+    MATCHES = live;
+    matchesSource = "live";
+    if (!MATCHES.some((m) => m.id === selectedMatchId)) {
+      selectedMatchId = MATCHES[0].id;
+    }
+    console.log(`Refreshed matches from API-Football: ${MATCHES.map((m) => m.label).join(" | ")}`);
+  } catch (error) {
+    console.warn("Live match refresh failed, keeping current matches:", error.message);
+  }
+}
+
+// Try once at startup, then re-check periodically so a newly-finished match
+// gets picked up without needing to restart the server.
+refreshMatches();
+setInterval(refreshMatches, 30 * 60 * 1000);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

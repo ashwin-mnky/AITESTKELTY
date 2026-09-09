@@ -1,58 +1,54 @@
 {
-  "note": "Kelty Hearts' 3 most recent results as of 19 August 2026, researched from SPFL, Sky Sports, Flashscore and local press coverage. Goal scorers for Stirling Albion and Elgin City are corroborated across multiple sources; exact minutes for the Elgin City match varied slightly between sources (e.g. 29' vs 31') so one representative minute per goal was used - treat those as approximate, not to-the-second. The Motherwell B match's minute-by-minute detail could not be reliably verified - different sources gave inconsistent scorer lists that didn't add up to 4-3 - so only the confirmed facts (final score, date, competition) are used for that one, rather than presenting unverified numbers as fact.",
+  "note": "Kelty Hearts' 3 most recent results as of 9 September 2026, researched from search-engine coverage of Central Fife Times, Sky Sports, keltyhearts.co.uk and Stranraer FC's own match report (this sandbox's network proxy blocks fetching those sites directly, so this is built from search snippets, not primary-source pages fetched live). Final scores, dates, venues and scorer names are corroborated across 2+ independent sources each. Goal minutes are NOT reliably confirmed for any of these three matches beyond qualitative markers ('early', 'late', 'first half') - rather than inventing precise minute numbers, one reasonable minute per goal was chosen within the reported window, and every match's sourceNote says so explicitly.",
   "matches": [
     {
-      "id": "stirling",
-      "label": "Kelty Hearts 3-2 Stirling Albion (8 Aug, League Two)",
+      "id": "stranraer",
+      "label": "Stranraer 2-0 Kelty Hearts (29 Aug, Away)",
       "homeTeam": "Kelty Hearts",
-      "awayTeam": "Stirling Albion",
-      "venue": "New Central Park",
+      "awayTeam": "Stranraer",
+      "venue": "Stair Park (Away)",
       "competition": "William Hill League Two",
-      "sourceNote": "Real match, 8 August 2026. Kelty's first league win of the season - Robbie Cole's last-minute header won it after Stirling twice fought back. All goals/minutes corroborated by Central Fife Times and Sky Sports commentary.",
+      "sourceNote": "Real match, 29 August 2026, a 2-0 away defeat - Kelty's only shutout loss in this set. Lewis Dobbie scored both goals for Stranraer, both reported as first-half strikes; exact minutes weren't independently confirmed in the sources found, so 20' and 38' are placeholders within the reported first-half window, not verified to-the-minute.",
       "events": [
-        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Stirling Albion is underway at New Central Park." },
-        { "minute": 6, "type": "goal", "team": "Kelty Hearts", "player": "Lewis Moore", "detail": "a well-taken early opener", "text": "GOAL! Lewis Moore opens the scoring for Kelty Hearts. 1-0." },
-        { "minute": 32, "type": "goal", "team": "Kelty Hearts", "player": "Ryan Shanley", "detail": "a contested effort just before the break", "text": "GOAL! Ryan Shanley doubles Kelty's lead. 2-0." },
-        { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts 2-0 Stirling Albion." },
-        { "minute": 65, "type": "goal", "team": "Stirling Albion", "player": "Jordan Allan", "detail": "a penalty after Jack Brydon was penalised for handball", "text": "GOAL! Jordan Allan converts from the spot for Stirling Albion. 2-1." },
-        { "minute": 75, "type": "substitution", "team": "Kelty Hearts", "playerOff": null, "playerOn": "Robbie Cole", "text": "Substitution for Kelty Hearts: Robbie Cole is introduced from the bench." },
-        { "minute": 80, "type": "goal", "team": "Stirling Albion", "player": "Russell McLean", "detail": "a composed finish to complete the fightback", "text": "GOAL! Russell McLean equalises for Stirling Albion. 2-2." },
-        { "minute": 88, "type": "goal", "team": "Kelty Hearts", "player": "Robbie Cole", "detail": "a close-range header after the goalkeeper spilled a routine save", "text": "GOOOOOAAALLLLLLL! Robbie Cole snatches a dramatic late winner for Kelty Hearts! 3-2." },
-        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 3-2 Stirling Albion. A five-goal thriller settled by substitute Robbie Cole's last-minute header." }
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Stranraer is underway at Stair Park." },
+        { "minute": 20, "type": "goal", "team": "Stranraer", "player": "Lewis Dobbie", "detail": "a first-half opener", "text": "GOAL! Lewis Dobbie puts Stranraer ahead. 0-1." },
+        { "minute": 38, "type": "goal", "team": "Stranraer", "player": "Lewis Dobbie", "detail": "his second of the afternoon, before the break", "text": "GOAL! Lewis Dobbie doubles Stranraer's lead. 0-2." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: Stranraer lead at Stair Park. 0-2." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Stranraer 2-0 Kelty Hearts. A quiet afternoon in front of goal, Lewis Dobbie's brace doing the damage." }
       ]
     },
     {
-      "id": "elgin",
-      "label": "Elgin City 4-1 Kelty Hearts (15 Aug, Away)",
+      "id": "annan",
+      "label": "Kelty Hearts 2-1 Annan Athletic (5 Sept, League Two)",
       "homeTeam": "Kelty Hearts",
-      "awayTeam": "Elgin City",
-      "venue": "Borough Briggs (Away)",
+      "awayTeam": "Annan Athletic",
+      "venue": "New Central Park",
       "competition": "William Hill League Two",
-      "sourceNote": "Real match, 15 August 2026, a 4-1 away defeat. Scorers and the Cole goal sequence corroborated across Sky Sports, Flashscore, the Central Fife Times and Kelty Hearts' own club site. Goal minutes varied slightly between sources (e.g. 29' vs 31', 84' vs 85') - one representative minute was used per goal, so treat them as approximate rather than to-the-second.",
+      "sourceNote": "Real match, 5 September 2026, a 2-1 win. Best-corroborated match of the three - multiple Central Fife Times pieces cover Nathan Lawson's late winner, his first goal for the club, scored moments after coming off the bench, roughly five minutes from time. Innes Murray's opener is reported as an early goal; Tommy Muir's equaliser for Annan as a late header. None of the three minutes are independently confirmed to the exact number, so 15'/75'/85' are reasonable placements within the reported windows, not verified figures.",
       "events": [
-        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Elgin City is underway at Borough Briggs." },
-        { "minute": 30, "type": "goal", "team": "Elgin City", "player": "Kane Hester", "detail": "a left-footed shot from the left side of the box, assisted by Russell Dingwall", "text": "GOAL! Kane Hester puts Elgin City ahead. 0-1." },
-        { "minute": 45, "type": "halftime", "text": "Half-time: Elgin City lead at Borough Briggs. 0-1." },
-        { "minute": 51, "type": "goal", "team": "Elgin City", "player": "Lewis Mackay", "detail": "a right-footed finish from the centre of the box", "text": "GOAL! Lewis Mackay doubles Elgin City's lead. 0-2." },
-        { "minute": 71, "type": "goal", "team": "Kelty Hearts", "player": "Robbie Cole", "detail": "a rebound after Falconer's cross-shot was pushed out, moments after coming on as a substitute", "text": "GOAL! Robbie Cole pulls one back for Kelty Hearts. 1-2." },
-        { "minute": 81, "type": "goal", "team": "Elgin City", "player": "Russell Dingwall", "detail": "a left-footed finish", "text": "GOAL! Russell Dingwall restores Elgin City's two-goal cushion. 1-3." },
-        { "minute": 85, "type": "goal", "team": "Elgin City", "player": "Jack MacIver", "detail": "assisted by Aaron Cummings", "text": "GOAL! Jack MacIver completes the scoring for Elgin City. 1-4." },
-        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Elgin City 4-1 Kelty Hearts. A tough afternoon on the road - Robbie Cole's goal was Kelty's only reply." }
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Annan Athletic is underway at New Central Park." },
+        { "minute": 15, "type": "goal", "team": "Kelty Hearts", "player": "Innes Murray", "detail": "a curled effort", "text": "GOAL! Innes Murray puts Kelty Hearts ahead. 1-0." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts lead at New Central Park. 1-0." },
+        { "minute": 75, "type": "goal", "team": "Annan Athletic", "player": "Tommy Muir", "detail": "a header", "text": "GOAL! Tommy Muir equalises for Annan Athletic. 1-1." },
+        { "minute": 85, "type": "goal", "team": "Kelty Hearts", "player": "Nathan Lawson", "detail": "a curling finish, his first goal for the club, moments after coming off the bench", "text": "GOOOOOAAALLLLLLL! Nathan Lawson snatches a late winner for Kelty Hearts! 2-1." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 2-1 Annan Athletic. Substitute Nathan Lawson's late strike, his first goal for the club, won it after Annan had equalised." }
       ]
     },
     {
-      "id": "motherwell",
-      "label": "Kelty Hearts 4-3 Motherwell B (11 Aug, KDM Evolution Trophy)",
+      "id": "cumbernauld",
+      "label": "Cumbernauld Colts 0-3 Kelty Hearts (8 Sept, KDM Trophy)",
       "homeTeam": "Kelty Hearts",
-      "awayTeam": "Motherwell B",
-      "venue": "New Central Park",
+      "awayTeam": "Cumbernauld Colts",
+      "venue": "Broadwood Stadium (Away)",
       "competition": "KDM Evolution Trophy",
-      "sourceNote": "Real match, 11 August 2026, a 4-3 win. Competition confirmed as the KDM Evolution Trophy (was previously mislabelled Scottish Challenge Cup - corrected 19 August). Only the confirmed facts are used here (final score, date, competition, that Kelty won) - available minute-by-minute scorer reports were inconsistent between sources (they didn't add up to the actual 4-3 scoreline), so rather than presenting unverified detail as fact, this one is kept simple. No goal events are scripted below, so the scoreboard is backed by finalScore instead - 4-3 only appears once full-time is reached, not fabricated as a running tally.",
-      "finalScore": { "home": 4, "away": 3 },
+      "sourceNote": "Real match, 8 September 2026, a 3-0 away win. Scorers (Jamie Hislop brace, Zack Flatman header) came from fewer independent sources than the other two matches this set - treat names as moderate confidence and minutes as unconfirmed placeholders (Hislop's goals reported as early, Flatman's as late).",
       "events": [
-        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Motherwell B is underway at New Central Park." },
-        { "minute": 45, "type": "halftime", "text": "Half-time: an even, high-scoring affair at New Central Park." },
-        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 4-3 Motherwell B. A seven-goal thriller in the KDM Evolution Trophy." }
+        { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Cumbernauld Colts is underway at Broadwood Stadium." },
+        { "minute": 12, "type": "goal", "team": "Kelty Hearts", "player": "Jamie Hislop", "detail": "an early opener", "text": "GOAL! Jamie Hislop opens the scoring for Kelty Hearts. 1-0." },
+        { "minute": 30, "type": "goal", "team": "Kelty Hearts", "player": "Jamie Hislop", "detail": "his second of the night, before the break", "text": "GOAL! Jamie Hislop doubles his tally and Kelty Hearts' lead. 2-0." },
+        { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts lead at Broadwood Stadium. 2-0." },
+        { "minute": 80, "type": "goal", "team": "Kelty Hearts", "player": "Zack Flatman", "detail": "a header", "text": "GOAL! Zack Flatman completes the scoring for Kelty Hearts. 3-0." },
+        { "minute": 90, "type": "fulltime", "text": "FULL TIME: Cumbernauld Colts 0-3 Kelty Hearts. A comfortable night in the KDM Evolution Trophy, Jamie Hislop's early brace doing the damage." }
       ]
     }
   ]

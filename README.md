@@ -92,26 +92,35 @@ is available — otherwise it uses the free template mode automatically.
 
 ## Live Data: What's Real vs. Simulated Right Now
 
-- `matches.json` contains Kelty Hearts' 3 most recent real results (as of
-  19 August 2026), researched from SPFL, Sky Sports and local press: goals,
-  cards, subs and final scores drive the simulated feed. Two of the three
-  (Stirling Albion, Elgin City) have fully verified goal-by-goal detail; the
-  third (Motherwell B) only has the confirmed final score, since the
-  scorer reports found for it were inconsistent between sources - rather
-  than presenting unverified numbers as fact, that one just plays out to
-  the real 4-3 result without a fabricated goal-by-goal script.
-- `next_match.json` is Kelty's real next fixture (currently Dumbarton,
-  22 August, home), same "manually researched, not live-fetched" caveat -
-  this needs updating by hand after each match, which is exactly what
-  happened here: the previous Elgin City fixture had since been played
-  (a 4-1 defeat) and was moved into `matches.json` as a completed result.
-- No live sports API is connected yet. Scottish League Two isn't covered by
-  most free live-score APIs — the two realistic paths are:
-  - **TheSportsDB Premium** (~$9/month) — live scores updated every 2 minutes
-  - **Manual live input** — someone at the match enters events as they happen
-    (see the Live Match Tracker, which already does exactly this)
-- Either source can be dropped into `/api/live-feed` in `server.js` in place
-  of the simulated clock, without changing the post-generation or approval UI.
+- **The Practice Simulation tab now auto-refreshes from a live API when a key
+  is available.** Set an `API_FOOTBALL_KEY` env var (free tier at
+  dashboard.api-football.com, confirmed to cover Scottish League Two) before
+  running `npm start`, and the server fetches Kelty's 3 most recently
+  finished matches automatically - on startup, and again every 30 minutes,
+  so a newly-finished match gets picked up without anyone editing a file.
+  The Simulation tab shows a small `🟢 live from API-Football` /
+  `⚠ placeholder (manually updated)` badge so it's always honest about which
+  mode is actually running.
+- **Without a key** (the default), `matches.json` is used instead - manually
+  researched and kept current by hand. As of 9 September 2026 that's
+  Stranraer (29 Aug, 2-0 loss), Annan Athletic (5 Sept, 2-1 win), and
+  Cumbernauld Colts (8 Sept, KDM Evolution Trophy, 3-0 win). Goal scorers and
+  final scores are corroborated across 2+ sources each; exact goal minutes
+  are not independently confirmed for any of these three, so placeholder
+  minutes were chosen within the reported window rather than presenting
+  invented precision as fact - see `matches.json`'s own `sourceNote` per
+  match for specifics.
+- `next_match.json` is Kelty's real next fixture (currently Clyde,
+  12 September, away), same manual-fallback pattern as the match history -
+  `/api/next-match` already tries TheSportsDB live first, same idea.
+- **Caveat on the live path**: this sandbox's network proxy blocks
+  api-sports.io the same way it blocks every other sports-data site used in
+  this project, so the API-Football integration in `server.js` has been
+  written carefully against their documented API shape and defensively
+  error-handled, but has not been exercised end-to-end from here. Test it
+  for real once a key is set - if anything about the response shape doesn't
+  match, it'll just log a warning and fall back to `matches.json`, never
+  crash.
 
 ## Files
 
