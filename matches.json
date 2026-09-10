@@ -8,12 +8,17 @@
       "awayTeam": "Stranraer",
       "venue": "Stair Park (Away)",
       "competition": "William Hill League Two",
-      "sourceNote": "Real match, 29 August 2026, a 2-0 away defeat - Kelty's only shutout loss in this set. Lewis Dobbie scored both goals for Stranraer, both reported as first-half strikes; exact minutes weren't independently confirmed in the sources found, so 20' and 38' are placeholders within the reported first-half window, not verified to-the-minute.",
+      "sourceNote": "Real match, 29 August 2026, a 2-0 away defeat - Kelty's only shutout loss in this set. Lewis Dobbie scored both goals for Stranraer, both reported as first-half strikes; exact minutes weren't independently confirmed in the sources found, so 20' and 38' are placeholders within the reported first-half window, not verified to-the-minute. Substitutions, by contrast, ARE well-sourced here - Kelty's full off/on list and minutes are confirmed by Kelty Hearts' own match report (keltyhearts.co.uk, 'Dobbie doubler downs Kelty at Stranraer'), consistent across independent searches.",
       "events": [
         { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Stranraer is underway at Stair Park." },
         { "minute": 20, "type": "goal", "team": "Stranraer", "player": "Lewis Dobbie", "detail": "a first-half opener", "text": "GOAL! Lewis Dobbie puts Stranraer ahead. 0-1." },
         { "minute": 38, "type": "goal", "team": "Stranraer", "player": "Lewis Dobbie", "detail": "his second of the afternoon, before the break", "text": "GOAL! Lewis Dobbie doubles Stranraer's lead. 0-2." },
         { "minute": 45, "type": "halftime", "text": "Half-time: Stranraer lead at Stair Park. 0-2." },
+        { "minute": 59, "type": "substitution", "team": "Kelty Hearts", "playerOff": "Falconer", "playerOn": "Hannah", "text": "Substitution for Kelty Hearts: Hannah replaces Falconer." },
+        { "minute": 59, "type": "substitution", "team": "Kelty Hearts", "playerOff": "C. Flatman", "playerOn": "Walker", "text": "Substitution for Kelty Hearts: Walker replaces C. Flatman." },
+        { "minute": 59, "type": "substitution", "team": "Kelty Hearts", "playerOff": "Ferguson", "playerOn": "Moffett", "text": "Substitution for Kelty Hearts: Moffett replaces Ferguson." },
+        { "minute": 66, "type": "substitution", "team": "Kelty Hearts", "playerOff": "Cole", "playerOn": "Higginbotham", "text": "Substitution for Kelty Hearts: Higginbotham replaces Cole." },
+        { "minute": 74, "type": "substitution", "team": "Kelty Hearts", "playerOff": "Shanley", "playerOn": "McCormick", "text": "Substitution for Kelty Hearts: McCormick replaces Shanley." },
         { "minute": 90, "type": "fulltime", "text": "FULL TIME: Stranraer 2-0 Kelty Hearts. A quiet afternoon in front of goal, Lewis Dobbie's brace doing the damage." }
       ]
     },
@@ -24,13 +29,14 @@
       "awayTeam": "Annan Athletic",
       "venue": "New Central Park",
       "competition": "William Hill League Two",
-      "sourceNote": "Real match, 5 September 2026, a 2-1 win. Best-corroborated match of the three - multiple Central Fife Times pieces cover Nathan Lawson's late winner, his first goal for the club, scored moments after coming off the bench, roughly five minutes from time. Innes Murray's opener is reported as an early goal; Tommy Muir's equaliser for Annan as a late header. None of the three minutes are independently confirmed to the exact number, so 15'/75'/85' are reasonable placements within the reported windows, not verified figures.",
+      "sourceNote": "Real match, 5 September 2026, a 2-1 win. Nathan Lawson's introduction is well-sourced (on at 67', confirmed identically across independent searches) - correcting an earlier version of this file, which wrongly implied he scored moments after coming on; he was actually on the pitch for about 18 minutes before his winner. Manager Tam O'Ware also made a triple substitution around 75' (switching to a back five to protect the lead), but which three players were involved could not be reliably confirmed - contradictory names came up across searches, so that change is deliberately not scripted here rather than guessed. Innes Murray's opener is reported as an early goal; Tommy Muir's equaliser for Annan as a late header (~83'). Goal minutes are reasonable placements within the reported windows, not verified to-the-minute.",
       "events": [
         { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Annan Athletic is underway at New Central Park." },
         { "minute": 15, "type": "goal", "team": "Kelty Hearts", "player": "Innes Murray", "detail": "a curled effort", "text": "GOAL! Innes Murray puts Kelty Hearts ahead. 1-0." },
         { "minute": 45, "type": "halftime", "text": "Half-time: Kelty Hearts lead at New Central Park. 1-0." },
-        { "minute": 75, "type": "goal", "team": "Annan Athletic", "player": "Tommy Muir", "detail": "a header", "text": "GOAL! Tommy Muir equalises for Annan Athletic. 1-1." },
-        { "minute": 85, "type": "goal", "team": "Kelty Hearts", "player": "Nathan Lawson", "detail": "a curling finish, his first goal for the club, moments after coming off the bench", "text": "GOOOOOAAALLLLLLL! Nathan Lawson snatches a late winner for Kelty Hearts! 2-1." },
+        { "minute": 67, "type": "substitution", "team": "Kelty Hearts", "playerOff": null, "playerOn": "Nathan Lawson", "text": "Substitution for Kelty Hearts: Nathan Lawson is introduced from the bench." },
+        { "minute": 83, "type": "goal", "team": "Annan Athletic", "player": "Tommy Muir", "detail": "a header", "text": "GOAL! Tommy Muir equalises for Annan Athletic. 1-1." },
+        { "minute": 85, "type": "goal", "team": "Kelty Hearts", "player": "Nathan Lawson", "detail": "a curling finish, his first goal for the club, assisted by Alex Ferguson's cross from the left", "text": "GOOOOOAAALLLLLLL! Nathan Lawson snatches a late winner for Kelty Hearts! 2-1." },
         { "minute": 90, "type": "fulltime", "text": "FULL TIME: Kelty Hearts 2-1 Annan Athletic. Substitute Nathan Lawson's late strike, his first goal for the club, won it after Annan had equalised." }
       ]
     },
@@ -41,7 +47,7 @@
       "awayTeam": "Cumbernauld Colts",
       "venue": "Broadwood Stadium (Away)",
       "competition": "KDM Evolution Trophy",
-      "sourceNote": "Real match, 8 September 2026, a 3-0 away win. Scorers (Jamie Hislop brace, Zack Flatman header) came from fewer independent sources than the other two matches this set - treat names as moderate confidence and minutes as unconfirmed placeholders (Hislop's goals reported as early, Flatman's as late).",
+      "sourceNote": "Real match, 8 September 2026, a 3-0 away win. Scorers (Jamie Hislop brace, Zack Flatman header) came from fewer independent sources than the other two matches this set - treat names as moderate confidence and minutes as unconfirmed placeholders (Hislop's goals reported as early, Flatman's as late). Substitutions were specifically searched for (Kelty's own site, Central Fife Times, Sofascore/FotMob/Flashscore lineup pages, BBC/Sky) and genuinely could not be found anywhere - no dedicated match report for this tie surfaced. No substitution event is scripted for this match; that's a confirmed gap, not an oversight.",
       "events": [
         { "minute": 1, "type": "kickoff", "text": "Kick-off! Kelty Hearts vs Cumbernauld Colts is underway at Broadwood Stadium." },
         { "minute": 12, "type": "goal", "team": "Kelty Hearts", "player": "Jamie Hislop", "detail": "an early opener", "text": "GOAL! Jamie Hislop opens the scoring for Kelty Hearts. 1-0." },

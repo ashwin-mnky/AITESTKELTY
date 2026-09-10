@@ -937,8 +937,8 @@ async function pollFeed() {
   updateScore();
 
   for (const event of data.events) {
-    if (seenEvents.has(event.minute + event.type + (event.player || ''))) continue;
-    seenEvents.add(event.minute + event.type + (event.player || ''));
+    if (seenEvents.has(event.minute + event.type + (event.player || event.playerOn || ''))) continue;
+    seenEvents.add(event.minute + event.type + (event.player || event.playerOn || ''));
     addEventCard(event);
   }
 
@@ -1032,7 +1032,7 @@ function addEventCard(event) {
 }
 
 function cssId(event) {
-  return (event.minute + event.type + (event.player || '')).replace(/[^a-zA-Z0-9]/g, '');
+  return (event.minute + event.type + (event.player || event.playerOn || '')).replace(/[^a-zA-Z0-9]/g, '');
 }
 
 // Human-friendly label for a toast, e.g. "90' Goal" or "HT Half-time"
