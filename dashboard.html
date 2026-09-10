@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelty Hearts — Live Match Social Automation</title>
+<style>
+  :root {
+    --blue: #0071E3;
+    --blue-hover: #0077ED;
+    --blue-light: #EAF0FB;
+    --blue-text: #0058B0;
+    --ink: #24211B;
+    --ink-soft: #4B4438;
+    --muted: #8C8271;
+    --border: #DED2B8;
+    --border-soft: rgba(80,60,20,0.09);
+    --surface: #FFFDF7;
+    --track: #EFE7D5;
+    --bg: #F6F1E6;
+    --success: #34C759;
+    --success-bg: #E7F9EB;
+    --success-text: #1E8A3C;
+    --danger: #FF3B30;
+    --danger-bg: #FFEBEA;
+    --warning: #FF9500;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 10px;
+    --pill: 980px;
+    --shadow: 0 1px 3px rgba(60,45,15,0.05), 0 1px 1px rgba(60,45,15,0.04);
+    --shadow-raised: 0 1px 3px rgba(60,45,15,0.14), 0 1px 1px rgba(60,45,15,0.07);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+    line-height: 1.47;
+    -webkit-text-size-adjust: 100%;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  /* ---------- Header ---------- */
+  header { margin-bottom: 28px; }
+  header h1 {
+    font-size: 2.1em;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.022em;
+    margin-bottom: 6px;
+  }
+  header p { color: var(--muted); font-size: 15px; letter-spacing: -0.005em; }
+
+  /* ---------- Shared surface / card ---------- */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 26px 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-soft);
+  }
+  .card + .card { margin-top: 16px; }
+  .card h2 {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    margin-bottom: 6px;
+  }
+  .hint { font-size: 13.5px; color: var(--muted); margin-bottom: 18px; line-height: 1.55; }
+  .hint code {
+    background: var(--blue-light); color: var(--blue-text);
+    padding: 1px 6px; border-radius: 5px; font-size: 12px;
+    font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+  }
+
+  /* ---------- Buttons ---------- */
+  button { font-family: inherit; cursor: pointer; border: none; -webkit-tap-highlight-color: transparent; }
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+    padding: 12px 24px;
+    border-radius: var(--pill);
+    font-size: 14.5px;
+    font-weight: 590;
+    letter-spacing: -0.005em;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-primary:hover { background: var(--blue-hover); }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    background: var(--bg);
+    color: var(--ink);
+    padding: 10px 20px;
+    border-radius: var(--pill);
+    font-size: 13.5px;
+    font-weight: 590;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-secondary:hover { background: var(--track); }
+  .btn-secondary:active { transform: scale(0.97); }
+  .btn-small {
+    background: var(--bg);
+    color: var(--ink-soft);
+    padding: 6px 14px;
+    border-radius: var(--pill);
+    font-size: 12.5px;
+    font-weight: 590;
+    transition: background 0.15s ease;
+  }
+  .btn-small:hover { background: var(--track); }
+  .btn-danger-outline {
+    background: var(--danger);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--pill);
+    font-size: 13.5px;
+    font-weight: 590;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+  }
+  .btn-danger-outline:hover { opacity: 0.88; }
+  .btn-danger-outline:active { transform: scale(0.97); }
+
+  /* ---------- Tutorial card ---------- */
+  .tutorial-card { position: relative; margin-bottom: 16px; padding-right: 48px; }
+  .tutorial-card h2 { font-size: 15px; margin-bottom: 6px; }
+  .tutorial-card strong { color: var(--ink); }
+  .tutorial-close {
+    position: absolute; top: 14px; right: 14px;
+    background: transparent; color: var(--muted);
+    font-size: 20px; line-height: 1; padding: 4px 9px;
+    border-radius: 8px; transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tutorial-close:hover { background: var(--track); color: var(--ink); }
+
+  /* ---------- Notification bar ---------- */
+  .notif-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .notif-bar span { font-size: 13.5px; color: var(--ink-soft); }
+
+  /* ---------- Next match card ---------- */
+  .next-match-card {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .next-match-info .label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .07em; font-weight: 600;
+  }
+  .next-match-info .fixture { font-size: 1.2em; font-weight: 600; color: var(--ink); margin: 3px 0; letter-spacing: -0.012em; }
+  .next-match-info .venue { font-size: 13px; color: var(--muted); }
+  .countdown-wrap { text-align: center; }
+  .countdown {
+    font-size: 1.55em; font-weight: 600; color: var(--blue);
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .countdown-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ---------- Tab navigation (segmented control) ---------- */
+  .tab-bar {
+    display: flex; gap: 2px; margin: 24px 0 20px;
+    background: var(--track); padding: 3px; border-radius: 12px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    flex: 1; white-space: nowrap;
+    background: transparent; color: var(--ink-soft);
+    padding: 9px 12px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 590;
+    letter-spacing: -0.005em;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tab-btn:hover:not(.active) { color: var(--ink); }
+  .tab-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-raised); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: tabFadeIn 0.2s ease-out; }
+  @keyframes tabFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .score-badge.pulse { animation: scorePulse 0.4s ease-out; }
+  @keyframes scorePulse { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+  /* ---------- Status / badges ---------- */
+  .status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+  }
+  .badge-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .score-badge {
+    font-weight: 590; font-size: 1.05em;
+    background: var(--blue-light); color: var(--blue-text);
+    padding: 7px 14px; border-radius: var(--pill);
+  }
+  .clock-badge {
+    font-weight: 590; font-size: 1.05em;
+    font-variant-numeric: tabular-nums;
+    background: var(--ink); color: white;
+    padding: 7px 16px; border-radius: var(--pill); letter-spacing: .02em;
+  }
+  .status-pill {
+    font-size: 12.5px; font-weight: 590;
+    padding: 6px 12px; border-radius: var(--pill);
+    background: var(--track); color: var(--muted);
+  }
+  .status-pill.live { background: var(--danger-bg); color: var(--danger); }
+  .status-pill.live::before { content: "●"; margin-right: 5px; animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .sim-caption { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+
+  /* ---------- Form grid ---------- */
+  .form-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px; margin-bottom: 18px;
+  }
+  .form-grid label {
+    font-size: 12.5px; font-weight: 590; color: var(--ink-soft);
+    display: block; margin-bottom: 6px;
+  }
+  .form-grid input, .form-grid select {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 14px; font-family: inherit; color: var(--ink);
+    background: white; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .form-grid input:focus, .form-grid select:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 4px var(--blue-light);
+  }
+  .team-warning { font-size: 12.5px; color: var(--warning); margin-top: 6px; display: none; }
+  .team-warning.show { display: block; }
+
+  /* ---------- Feed / event cards ---------- */
+  .feed { display: flex; flex-direction: column; gap: 14px; }
+  .event-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-soft);
+    animation: slideIn .3s ease-out;
+  }
+  @keyframes slideIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  .event-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .minute-badge {
+    background: var(--ink); color: white; font-weight: 590; font-size: 12.5px;
+    padding: 3px 10px; border-radius: var(--pill);
+    font-variant-numeric: tabular-nums;
+  }
+  .event-type {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--muted);
+  }
+  .event-text { font-size: 14.5px; margin-bottom: 16px; color: var(--ink); }
+
+  .posts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px; margin-bottom: 14px;
+  }
+  .post-box { background: var(--bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 14px; }
+  .post-platform { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--blue); margin-bottom: 7px; }
+  .post-text { font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; color: var(--ink); margin-bottom: 10px; }
+  .generating { color: var(--muted); font-size: 13.5px; font-style: italic; }
+  .error-note {
+    color: var(--danger); font-size: 13.5px; background: var(--danger-bg);
+    padding: 10px 14px; border-radius: var(--radius-sm);
+  }
+
+  .approve-row { display: flex; gap: 10px; align-items: center; }
+  .approve-btn {
+    background: var(--success); color: white; padding: 8px 18px;
+    border-radius: var(--pill); font-size: 13px; font-weight: 590;
+    transition: opacity 0.15s ease;
+  }
+  .approve-btn:hover { opacity: 0.88; }
+  .approved-tag {
+    background: var(--success-bg); color: var(--success-text);
+    padding: 7px 14px; border-radius: var(--pill); font-size: 13px; font-weight: 590;
+  }
+
+  .empty-state { text-align: center; color: var(--muted); padding: 56px 20px; font-size: 14.5px; }
+
+  .photo-attach { margin-top: 12px; font-size: 13px; }
+  .photo-attach label { color: var(--muted); display: block; margin-bottom: 6px; }
+  .photo-preview { max-width: 130px; margin-top: 8px; border-radius: var(--radius-sm); display: block; }
+
+  /* ---------- Template editor ---------- */
+  .template-row { margin-bottom: 16px; }
+  .template-row label {
+    font-size: 13px; font-weight: 590; color: var(--ink-soft);
+    display: block; margin-bottom: 6px; text-transform: capitalize;
+  }
+  .template-row textarea {
+    width: 100%; min-height: 60px; padding: 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 12.5px; color: var(--ink); resize: vertical;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .template-row textarea:focus {
+    outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-light);
+  }
+  .settings-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+  .saved-note { font-size: 12.5px; color: var(--success-text); font-weight: 590; }
+
+  /* ---------- Toasts ---------- */
+  .toast-container { position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
+  .toast {
+    background: rgba(36,33,27,0.92);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: white; padding: 14px 18px;
+    border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(50,40,15,0.22);
+    font-size: 13.5px; max-width: 300px; display: flex; align-items: center; gap: 10px;
+    animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .toast.leaving { animation: toastOut 0.25s ease-in forwards; }
+  .toast .toast-icon {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--blue);
+    flex-shrink: 0;
+  }
+  .toast .toast-text strong { display: block; margin-bottom: 2px; font-weight: 590; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(30px); } }
+
+  @media (max-width: 600px) {
+    body { padding: 28px 14px; }
+    header h1 { font-size: 1.6em; }
+    .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn { flex: 0 0 auto; padding: 9px 16px; }
+    .card { padding: 20px 18px; }
+    .next-match-card { flex-direction: column; align-items: flex-start; }
+    .next-match-card .btn-danger-outline { width: 100%; text-align: center; }
+    .countdown-wrap { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+<div class="container">
+
+  <header>
+    <h1>Kelty Hearts</h1>
+    <p>AI-assisted draft posts for match events. A human always reviews before anything is copied out.</p>
+  </header>
+
+  <div class="card tutorial-card" id="tutorialCard">
+    <button class="tutorial-close" onclick="dismissTutorial()" aria-label="Dismiss guide">&times;</button>
+    <h2>Quick guide</h2>
+    <p class="hint" style="margin-bottom:0;">
+      <strong>Live Tracker</strong> — use this during a real match, typing in events as they happen.
+      <strong>Simulation</strong> — watch a demo replay using Kelty's real past results.
+      <strong>Scenarios</strong> — proof the tool isn't hardcoded to one game.
+      <strong>Settings</strong> — customize how posts are worded.
+    </p>
+  </div>
+
+  <div class="card notif-bar">
+    <span id="notifStatusText">Get alerted even when you're on another tab or app</span>
+    <button class="btn-secondary" id="notifBtn" onclick="enableDesktopNotifications()">Enable Desktop Notifications</button>
+  </div>
+
+  <div class="card next-match-card" style="margin-top:16px;">
+    <div class="next-match-info">
+      <div class="label">Next Match</div>
+      <div class="fixture" id="nextFixture">Loading…</div>
+      <div class="venue" id="nextVenue"></div>
+    </div>
+    <div class="countdown-wrap">
+      <div class="countdown" id="countdown">--:--:--</div>
+      <div class="countdown-label" id="countdownLabel">until kick-off</div>
+    </div>
+    <button class="btn-danger-outline" onclick="switchTab('tracker')">Go to Live Tracker</button>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabbtn-tracker" onclick="switchTab('tracker')">Live Tracker</button>
+    <button class="tab-btn" id="tabbtn-simulation" onclick="switchTab('simulation')">Simulation</button>
+    <button class="tab-btn" id="tabbtn-scenario" onclick="switchTab('scenario')">Scenarios</button>
+    <button class="tab-btn" id="tabbtn-settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- ===== TAB: Live Tracker ===== -->
+  <div class="tab-content active" id="tab-tracker">
+    <div class="card">
+      <h2>Live Match Tracker</h2>
+      <div class="hint">
+        Use this DURING a real match. Type in each event as it actually happens, in real time. There's no
+        script and no timer here; you control the pace, and the score updates automatically as you log goals.
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label>Opponent</label>
+          <input id="lOpponent" placeholder="e.g. Annan Athletic" oninput="validateTeamName('lOpponent','lOpponentWarning')">
+          <div class="team-warning" id="lOpponentWarning"></div>
+        </div>
+        <div>
+          <label>Venue</label>
+          <input id="lVenue" placeholder="e.g. New Central Park">
+        </div>
+      </div>
+
+      <div class="score-badge" id="liveScoreBadge" style="display:inline-block; margin-bottom:18px;">Kelty Hearts 0-0 Opponent</div>
+
+      <div class="form-grid">
+        <div>
+          <label>Event type</label>
+          <select id="lType" onchange="updateLiveFields()">
+            <option value="goal">Goal</option>
+            <option value="card">Card</option>
+            <option value="substitution">Substitution</option>
+            <option value="kickoff">Kick-off</option>
+            <option value="halftime">Half-time</option>
+            <option value="fulltime">Full-time</option>
+          </select>
+        </div>
+        <div>
+          <label>Minute</label>
+          <input id="lMinute" type="number" value="1" min="1" max="120">
+        </div>
+        <div>
+          <label>Team</label>
+          <select id="lTeam">
+            <option value="home">Kelty Hearts</option>
+            <option value="away">Opponent</option>
+          </select>
+        </div>
+        <div id="lPlayerWrap">
+          <label>Player</label>
+          <input id="lPlayer" placeholder="e.g. Blair Henderson">
+        </div>
+        <div id="lDetailWrap">
+          <label>Detail (goal only)</label>
+          <input id="lDetail" placeholder="e.g. a header from a corner">
+        </div>
+        <div id="lCardTypeWrap" style="display:none">
+          <label>Card type</label>
+          <select id="lCardType"><option>Yellow</option><option>Red</option></select>
+        </div>
+        <div id="lOffWrap" style="display:none">
+          <label>Player off</label>
+          <input id="lPlayerOff" placeholder="optional">
+        </div>
+        <div id="lOnWrap" style="display:none">
+          <label>Player on</label>
+          <input id="lPlayerOn" placeholder="e.g. Craig Barr">
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="addLiveEvent()">Log Event</button>
+    </div>
+
+    <div class="feed" id="liveFeed" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- ===== TAB: Practice Simulation ===== -->
+  <div class="tab-content" id="tab-simulation">
+    <div class="card">
+      <h2>Practice Simulation</h2>
+      <p class="hint" id="subtitle">A real Kelty Hearts match, replayed on a compressed clock.</p>
+
+      <div class="form-grid">
+        <div style="grid-column: 1 / -1;">
+          <label>Which match to replay</label>
+          <select id="matchPicker" onchange="onMatchPicked()"></select>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div class="badge-group">
+          <div class="clock-badge" id="clockBadge">--'</div>
+          <div class="score-badge" id="scoreBadge">Loading match…</div>
+          <div class="status-pill" id="statusPill">Not started</div>
+        </div>
+        <button class="btn-primary" id="startBtn" onclick="startSimulation()">Start Simulation</button>
+      </div>
+      <div class="sim-caption">⚠ Simulated clock for demo purposes, not a real live feed. 2 real seconds = 1 match minute (90' plays out in ~3 minutes). These are Kelty Hearts' 3 most recent real results, pick any of them. <span id="matchesSourceBadge"></span></div>
+    </div>
+
+    <div class="feed" id="feed" style="margin-top:16px;"></div>
+    <div class="empty-state" id="emptyState">Click "Start Simulation" to begin. Events will appear here as they happen, just like a real match feed.</div>
+  </div>
+
+  <!-- ===== TAB: Scenario Tester ===== -->
+  <div class="tab-content" id="tab-scenario">
+    <div class="card">
+      <h2>Prove It Works for Different Matches</h2>
+      <div class="hint">
+        Pick any of these 5 scenarios (different opponents, different event types, nothing typed in live) and
+        generate a post. Same generator code every time, zero per-match changes. Good for showing your manager
+        it isn't hardcoded to one game.
+      </div>
+
+      <div class="form-grid">
+        <div style="grid-column: 1 / -1;">
+          <label>Scenario</label>
+          <select id="scenarioPicker">
+            <option value="0">Late winner vs Elgin City (Goal, 90')</option>
+            <option value="1">Red card vs Forfar Athletic (Card, 55')</option>
+            <option value="2">Substitution vs Stranraer (Sub, 70')</option>
+            <option value="3">Half-time, behind vs Edinburgh City (HT)</option>
+            <option value="4">Full-time win vs Annan Athletic (FT)</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="generateTestPost()">Generate Post For This Scenario</button>
+
+      <div id="testResult" style="margin-top:18px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: Settings ===== -->
+  <div class="tab-content" id="tab-settings">
+    <div class="card">
+      <h2>Customize Post Wording</h2>
+      <div class="hint">
+        Edit exactly how each type of update is worded. Use
+        <code>{player}</code>, <code>{minute}</code>, <code>{team}</code>,
+        <code>{opponent}</code>, <code>{detail}</code>, <code>{cardType}</code>,
+        <code>{playerOn}</code>, <code>{playerOff}</code>, <code>{score}</code>,
+        <code>{hashtag}</code>, <code>{venue}</code>. They'll be swapped in
+        automatically for each real event, whatever the player's name is.
+      </div>
+      <div id="templateFields"></div>
+      <div class="settings-actions">
+        <button class="btn-primary" onclick="saveTemplates()">Save Wording</button>
+        <button class="btn-secondary" onclick="resetTemplates()">Reset to Defaults</button>
+        <span class="saved-note" id="savedNote" style="display:none;">✓ Saved</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---- First-run tutorial card ----
+if (localStorage.getItem('keltyTutorialDismissed')) {
+  document.getElementById('tutorialCard').style.display = 'none';
+}
+function dismissTutorial() {
+  document.getElementById('tutorialCard').style.display = 'none';
+  localStorage.setItem('keltyTutorialDismissed', '1');
+}
+
+// ---- Tabs ----
+const TAB_NAMES = ['tracker', 'simulation', 'scenario', 'settings'];
+function switchTab(name) {
+  for (const t of TAB_NAMES) {
+    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+    document.getElementById('tabbtn-' + t).classList.toggle('active', t === name);
+  }
+  if (name === 'tracker') prefillTrackerFromNextMatch();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Toast alert - fires whenever a new post finishes generating, so staff
+// notice even if they're not watching the feed at that moment.
+function showToast(title, body) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-icon"></div>
+    <div class="toast-text"><strong>${title}</strong>${body}</div>
+  `;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('leaving');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// Real OS-level desktop notification - unlike the toast above, this shows
+// even if the tab isn't focused or you're on a completely different app.
+// Requires a one-time browser permission grant.
+function updateNotifButton() {
+  const btn = document.getElementById('notifBtn');
+  const status = document.getElementById('notifStatusText');
+  if (!('Notification' in window)) {
+    status.textContent = "Desktop notifications aren't supported in this browser";
+    btn.style.display = 'none';
+  } else if (Notification.permission === 'granted') {
+    status.textContent = '✅ Desktop notifications are on';
+    btn.style.display = 'none';
+  } else if (Notification.permission === 'denied') {
+    status.textContent = "🔕 Desktop notifications are blocked. Check your browser's site settings";
+    btn.style.display = 'none';
+  } else {
+    status.textContent = "Get alerted even when you're on another tab or app";
+    btn.style.display = 'inline-block';
+  }
+}
+updateNotifButton();
+
+async function enableDesktopNotifications() {
+  if (!('Notification' in window)) return;
+  await Notification.requestPermission();
+  updateNotifButton();
+}
+
+function notifyDesktop(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body });
+  }
+}
+
+// Fires both alerts together - the in-page toast for when you're looking
+// at the tab, the desktop notification for when you're not.
+function alertNewPost(title, body) {
+  showToast(title, body);
+  notifyDesktop(title, body);
+}
+
+let pollTimer = null;
+let seenEvents = new Set();
+let homeScore = 0, awayScore = 0;
+let homeTeam = 'Home';
+let awayTeam = 'Away';
+
+async function loadMatchInfo() {
+  try {
+    const res = await fetch('/api/match-info');
+    if (!res.ok) throw new Error('bad response');
+    const info = await res.json();
+    homeTeam = info.homeTeam;
+    awayTeam = info.awayTeam;
+    updateScore();
+    document.getElementById('subtitle').textContent =
+      `${info.competition ? info.competition + ' · ' : ''}${info.venue} · a real Kelty Hearts match, replayed on a compressed clock.`;
+  } catch (err) {
+    document.getElementById('subtitle').textContent = "Couldn't load match info. Check your connection and refresh the page.";
+  }
+}
+loadMatchInfo();
+
+// ---- Match picker (which real match the simulation replays) ----
+async function loadMatchList() {
+  try {
+    const res = await fetch('/api/matches');
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    document.getElementById('matchPicker').innerHTML =
+      data.matches.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+    const badge = document.getElementById('matchesSourceBadge');
+    if (badge) {
+      badge.textContent = data.source === 'live' ? '🟢 live from API-Football' : '⚠ placeholder (manually updated)';
+    }
+  } catch (err) {
+    document.getElementById('matchPicker').innerHTML = `<option>Couldn't load matches, refresh the page</option>`;
+  }
+}
+loadMatchList();
+
+async function onMatchPicked() {
+  const matchId = document.getElementById('matchPicker').value;
+  await fetch('/api/select-match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matchId })
+  });
+
+  // Reset the simulation display for the newly picked match, same as a
+  // fresh page load would show, without starting the clock.
+  clearInterval(pollTimer);
+  seenEvents.clear();
+  document.getElementById('feed').innerHTML = '';
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('clockBadge').textContent = "--'";
+  document.getElementById('statusPill').textContent = 'Not started';
+  document.getElementById('statusPill').classList.remove('live');
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('startBtn').textContent = 'Start Simulation';
+
+  await loadMatchInfo();
+}
+
+// ---- Next match card + countdown ----
+let nextMatchData = null;
+
+async function loadNextMatch() {
+  try {
+    const res = await fetch('/api/next-match');
+    if (!res.ok) throw new Error('bad response');
+    nextMatchData = await res.json();
+    const sourceTag = nextMatchData.source === 'live' ? ' 🟢 live' : ' ⚠ placeholder';
+    document.getElementById('nextFixture').textContent = `Kelty Hearts vs ${nextMatchData.opponent}`;
+    document.getElementById('nextVenue').textContent = `${nextMatchData.competition || ''} · ${nextMatchData.venue} ·${sourceTag}`;
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    prefillTrackerFromNextMatch();
+  } catch (err) {
+    document.getElementById('nextFixture').textContent = "Couldn't load. Check your connection";
+    document.getElementById('nextVenue').textContent = '';
+  }
+}
+loadNextMatch();
+
+function updateCountdown() {
+  if (!nextMatchData) return;
+  const diff = new Date(nextMatchData.kickoff).getTime() - Date.now();
+  const el = document.getElementById('countdown');
+  const label = document.getElementById('countdownLabel');
+  if (diff <= 0) {
+    el.textContent = 'KICK-OFF';
+    label.textContent = 'match day is here';
+    return;
+  }
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  el.textContent = days > 0
+    ? `${days}d ${hours}h ${mins}m`
+    : `${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  label.textContent = 'until kick-off';
+}
+
+// ---- Known-team validation (warns, never blocks - see known_teams.json) ----
+let knownTeamsList = [];
+
+async function loadKnownTeams() {
+  try {
+    const res = await fetch('/api/known-teams');
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    knownTeamsList = data.teams.map(t => t.toLowerCase());
+  } catch (err) {
+    // Non-critical: the warning just won't fire until this loads successfully.
+  }
+}
+loadKnownTeams();
+
+function validateTeamName(inputId, warningId) {
+  const value = document.getElementById(inputId).value.trim();
+  const warningEl = document.getElementById(warningId);
+  if (!value) {
+    warningEl.classList.remove('show');
+    return;
+  }
+  const known = knownTeamsList.includes(value.toLowerCase());
+  if (known) {
+    warningEl.classList.remove('show');
+  } else {
+    warningEl.textContent = `⚠ "${value}" isn't in our known-opponents list. Double check the spelling, or ignore this if it's a new/unlisted opponent.`;
+    warningEl.classList.add('show');
+  }
+}
+
+// ---- Live Match Tracker (real events, real time, no script) ----
+let liveHome = 0, liveAway = 0;
+let liveEventCounter = 0;
+let trackerPrefilled = false;
+
+// Only prefills once, and only if the fields are still empty - so switching
+// tabs back and forth never overwrites something you've already typed.
+function prefillTrackerFromNextMatch() {
+  if (trackerPrefilled || !nextMatchData) return;
+  const oppField = document.getElementById('lOpponent');
+  if (oppField.value) { trackerPrefilled = true; return; }
+  oppField.value = nextMatchData.opponent;
+  document.getElementById('lVenue').value = nextMatchData.venue;
+  validateTeamName('lOpponent', 'lOpponentWarning');
+  updateLiveScoreBadge();
+  trackerPrefilled = true;
+}
+
+function updateLiveFields() {
+  const type = document.getElementById('lType').value;
+  document.getElementById('lPlayerWrap').style.display = (type === 'goal' || type === 'card') ? '' : 'none';
+  document.getElementById('lDetailWrap').style.display = (type === 'goal') ? '' : 'none';
+  document.getElementById('lCardTypeWrap').style.display = (type === 'card') ? '' : 'none';
+  document.getElementById('lOffWrap').style.display = (type === 'substitution') ? '' : 'none';
+  document.getElementById('lOnWrap').style.display = (type === 'substitution') ? '' : 'none';
+}
+updateLiveFields();
+
+function updateLiveScoreBadge() {
+  const opponent = document.getElementById('lOpponent').value || 'Opponent';
+  document.getElementById('liveScoreBadge').textContent = `Kelty Hearts ${liveHome}-${liveAway} ${opponent}`;
+}
+
+async function addLiveEvent() {
+  const type = document.getElementById('lType').value;
+  const rawMinute = parseInt(document.getElementById('lMinute').value, 10);
+  const minute = Number.isFinite(rawMinute) && rawMinute > 0 ? rawMinute : 1;
+  const opponent = document.getElementById('lOpponent').value || 'Opponent';
+  const venue = document.getElementById('lVenue').value || 'New Central Park';
+  const teamSide = document.getElementById('lTeam').value;
+  const team = teamSide === 'home' ? 'Kelty Hearts' : opponent;
+
+  const event = { minute, type, team };
+
+  if (type === 'goal') {
+    event.player = document.getElementById('lPlayer').value || 'Player';
+    event.detail = document.getElementById('lDetail').value || undefined;
+    if (teamSide === 'home') liveHome++; else liveAway++;
+  } else if (type === 'card') {
+    event.player = document.getElementById('lPlayer').value || 'Player';
+    event.cardType = document.getElementById('lCardType').value;
+  } else if (type === 'substitution') {
+    event.playerOff = document.getElementById('lPlayerOff').value || null;
+    event.playerOn = document.getElementById('lPlayerOn').value || 'Player';
+  } else {
+    event.text = type === 'kickoff' ? 'Kick-off!' : type === 'halftime' ? 'Half-time.' : 'Full time.';
+  }
+
+  updateLiveScoreBadge();
+  if (type === 'goal') {
+    const badge = document.getElementById('liveScoreBadge');
+    badge.classList.remove('pulse');
+    void badge.offsetWidth; // restart the animation even if it's still mid-pulse
+    badge.classList.add('pulse');
+  }
+
+  const context = { awayTeam: opponent, venue, score: { home: liveHome, away: liveAway } };
+
+  liveEventCounter++;
+  const id = `live-${liveEventCounter}`;
+
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.innerHTML = `
+    <div class="event-header">
+      <div class="minute-badge">${minute}'</div>
+      <div class="event-type">${type}</div>
+    </div>
+    <div class="posts-grid" id="posts-${id}"><div class="generating">Generating social posts…</div></div>
+  `;
+  document.getElementById('liveFeed').prepend(card);
+
+  try {
+    const res = await fetch('/api/generate-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, context, templates: getTemplates() })
+    });
+    if (!res.ok) throw new Error(`Server error (${res.status})`);
+    const data = await res.json();
+    renderPosts(id, data.posts);
+    alertNewPost('New post ready to send', `${eventToastLabel(event)} vs ${opponent}`);
+  } catch (err) {
+    document.getElementById('posts-' + id).innerHTML =
+      `<div class="error-note">Couldn't reach the server. Check your connection and try logging this event again.</div>`;
+  }
+}
+
+let defaultTemplates = {};
+
+async function loadTemplateEditor() {
+  try {
+    const res = await fetch('/api/default-templates');
+    if (!res.ok) throw new Error('bad response');
+    defaultTemplates = await res.json();
+    renderTemplateFields(getTemplates());
+  } catch (err) {
+    document.getElementById('templateFields').innerHTML =
+      `<div class="error-note">Couldn't load wording templates. Check your connection and refresh the page.</div>`;
+  }
+}
+loadTemplateEditor();
+
+function getTemplates() {
+  const saved = localStorage.getItem('keltyTemplates');
+  return saved ? JSON.parse(saved) : { ...defaultTemplates };
+}
+
+function renderTemplateFields(templates) {
+  const container = document.getElementById('templateFields');
+  container.innerHTML = Object.keys(defaultTemplates).map(type => `
+    <div class="template-row">
+      <label>${type}</label>
+      <textarea id="tmpl-${type}">${(templates[type] || defaultTemplates[type]).replace(/</g, '&lt;')}</textarea>
+    </div>
+  `).join('');
+}
+
+function saveTemplates() {
+  const templates = {};
+  for (const type of Object.keys(defaultTemplates)) {
+    templates[type] = document.getElementById(`tmpl-${type}`).value;
+  }
+  localStorage.setItem('keltyTemplates', JSON.stringify(templates));
+  const note = document.getElementById('savedNote');
+  note.style.display = 'inline';
+  setTimeout(() => { note.style.display = 'none'; }, 2000);
+}
+
+function resetTemplates() {
+  localStorage.removeItem('keltyTemplates');
+  renderTemplateFields(defaultTemplates);
+}
+
+async function startSimulation() {
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('statusPill').textContent = 'LIVE';
+  document.getElementById('statusPill').classList.add('live');
+  seenEvents.clear();
+  homeScore = 0; awayScore = 0;
+  updateScore();
+  document.getElementById('clockBadge').textContent = "0'";
+  document.getElementById('feed').innerHTML = '';
+
+  const matchId = document.getElementById('matchPicker').value;
+  await fetch('/api/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matchId })
+  });
+
+  pollTimer = setInterval(pollFeed, 1500);
+}
+
+function updateScore() {
+  document.getElementById('scoreBadge').textContent = `${homeTeam} ${homeScore}-${awayScore} ${awayTeam}`;
+}
+
+async function pollFeed() {
+  const res = await fetch('/api/live-feed');
+  const data = await res.json();
+
+  document.getElementById('clockBadge').textContent = `${data.currentMinute}'`;
+
+  // Score comes from the server (it tracks both teams internally) since the
+  // feed itself only shows Kelty Hearts' own events - the opponent's goals
+  // still count on the scoreboard, they just don't get a post generated.
+  homeScore = data.score.home;
+  awayScore = data.score.away;
+  updateScore();
+
+  for (const event of data.events) {
+    if (seenEvents.has(event.minute + event.type + (event.player || event.playerOn || ''))) continue;
+    seenEvents.add(event.minute + event.type + (event.player || event.playerOn || ''));
+    addEventCard(event);
+  }
+
+  if (data.finished) {
+    clearInterval(pollTimer);
+    document.getElementById('statusPill').textContent = 'FULL TIME';
+    document.getElementById('statusPill').classList.remove('live');
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('startBtn').textContent = 'Run Simulation Again';
+  }
+}
+
+// Five preset scenarios spanning every event type (goal/card/substitution/
+// half-time/full-time) against five different opponents. All are Kelty
+// Hearts' own events (per the Kelty-only posting rule) - nothing is typed
+// in live, so this is a stronger demo than free text: pick one, generate,
+// and the same unmodified code produces a correctly formatted, differently
+// worded post each time because the underlying facts differ.
+const PRESET_SCENARIOS = [
+  {
+    context: { awayTeam: 'Elgin City', venue: 'New Central Park (Home)', score: { home: 2, away: 1 } },
+    event: { minute: 90, type: 'goal', team: 'Kelty Hearts', player: 'Euan Spark', detail: 'a scrambled finish from close range' }
+  },
+  {
+    context: { awayTeam: 'Forfar Athletic', venue: 'Station Park (Away)', score: { home: 1, away: 1 } },
+    event: { minute: 55, type: 'card', team: 'Kelty Hearts', player: 'Craig Barr', cardType: 'Red' }
+  },
+  {
+    context: { awayTeam: 'Stranraer', venue: 'New Central Park (Home)', score: { home: 0, away: 0 } },
+    event: { minute: 70, type: 'substitution', team: 'Kelty Hearts', playerOff: 'John Pelosi', playerOn: 'Charlie Reilly' }
+  },
+  {
+    context: { awayTeam: 'Edinburgh City', venue: 'Meadowbank Stadium (Away)', score: { home: 0, away: 1 } },
+    event: { minute: 45, type: 'halftime' }
+  },
+  {
+    context: { awayTeam: 'Annan Athletic', venue: 'New Central Park (Home)', score: { home: 3, away: 0 } },
+    event: { minute: 90, type: 'fulltime' }
+  }
+];
+
+async function generateTestPost() {
+  const idx = parseInt(document.getElementById('scenarioPicker').value, 10);
+  const scenario = PRESET_SCENARIOS[idx];
+
+  const resultBox = document.getElementById('testResult');
+  resultBox.innerHTML = '<div class="generating">Generating…</div>';
+
+  try {
+    const res = await fetch('/api/generate-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: scenario.event, context: scenario.context, templates: getTemplates() })
+    });
+    if (!res.ok) throw new Error(`Server error (${res.status})`);
+    const data = await res.json();
+
+    const platforms = [
+      { key: 'instagram', label: 'Instagram' },
+      { key: 'x', label: 'X / Twitter' },
+      { key: 'facebook', label: 'Facebook' }
+    ];
+    resultBox.innerHTML = `<div class="posts-grid">${platforms.map(p => `
+      <div class="post-box">
+        <div class="post-platform">${p.label}</div>
+        <div class="post-text">${(data.posts[p.key] || '').replace(/</g,'&lt;')}</div>
+      </div>
+    `).join('')}</div>`;
+    alertNewPost('New post ready to send', `${eventToastLabel(scenario.event)} vs ${scenario.context.awayTeam}`);
+  } catch (err) {
+    resultBox.innerHTML = `<div class="error-note">Couldn't reach the server. Check your connection and try again.</div>`;
+  }
+}
+
+function addEventCard(event) {
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.innerHTML = `
+    <div class="event-header">
+      <div class="minute-badge">${event.minute}'</div>
+      <div class="event-type">${event.type}</div>
+    </div>
+    <div class="event-text">${event.text}</div>
+    <div class="posts-grid" id="posts-${cssId(event)}">
+      <div class="generating">Generating social posts…</div>
+    </div>
+  `;
+  document.getElementById('feed').prepend(card);
+
+  generatePosts(event);
+}
+
+function cssId(event) {
+  return (event.minute + event.type + (event.player || event.playerOn || '')).replace(/[^a-zA-Z0-9]/g, '');
+}
+
+// Human-friendly label for a toast, e.g. "90' Goal" or "HT Half-time"
+function eventToastLabel(event) {
+  const typeLabel = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+  return `${event.minute}' ${typeLabel}`;
+}
+
+async function generatePosts(event) {
+  const id = cssId(event);
+  try {
+    const res = await fetch('/api/generate-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, templates: getTemplates() })
+    });
+    const data = await res.json();
+    renderPosts(id, data.posts);
+    alertNewPost('New post ready to send', eventToastLabel(event));
+  } catch (err) {
+    document.getElementById('posts-' + id).innerHTML = `<div class="generating">Failed to generate posts.</div>`;
+  }
+}
+
+function renderPosts(id, posts) {
+  const container = document.getElementById('posts-' + id);
+  if (!container) return;
+
+  const platforms = [
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'x', label: 'X / Twitter' },
+    { key: 'facebook', label: 'Facebook' }
+  ];
+
+  container.innerHTML = platforms.map(p => `
+    <div class="post-box">
+      <div class="post-platform">${p.label}</div>
+      <div class="post-text" id="posttext-${id}-${p.key}">${(posts[p.key] || '').replace(/</g,'&lt;')}</div>
+      <button class="btn-small" onclick="copyPostText('posttext-${id}-${p.key}', this)">Copy</button>
+    </div>
+  `).join('');
+
+  const photoAttach = document.createElement('div');
+  photoAttach.className = 'photo-attach';
+  photoAttach.innerHTML = `
+    <label>Attach a photo (optional)</label>
+    <input type="file" accept="image/*" onchange="previewPhoto(this, '${id}')">
+    <img id="photoPreview-${id}" class="photo-preview" style="display:none;">
+  `;
+  container.parentElement.appendChild(photoAttach);
+
+  const approveRow = document.createElement('div');
+  approveRow.className = 'approve-row';
+  approveRow.innerHTML = `<button class="approve-btn" onclick="approve(this, '${id}')">✓ Mark as Approved</button>`;
+  container.parentElement.appendChild(approveRow);
+}
+
+// Copies one platform's post text to the clipboard so it can be pasted
+// straight into Instagram/X/Facebook - this app doesn't post automatically
+// (see README for why), so copy-paste is the actual real-world action.
+function copyPostText(textId, btn) {
+  const text = document.getElementById(textId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+}
+
+// Photo is preview-only (stored as a data URL in the browser) - this
+// prototype doesn't post to real social platforms yet, so there's nowhere
+// to upload it to. It demonstrates that attaching an image is optional and
+// doesn't block approving/sending the text.
+function previewPhoto(input, id) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById(`photoPreview-${id}`);
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function approve(btn, id) {
+  const img = document.getElementById(`photoPreview-${id}`);
+  const hasPhoto = img && img.style.display !== 'none' && img.src;
+  btn.parentElement.innerHTML = `<span class="approved-tag">✓ Approved${hasPhoto ? ' (with photo)' : ''}, ready to post</span>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "note": "Manually compiled reference list of teams Kelty Hearts realistically play (Scottish League Two plus common cup opponents from the Highland/Lowland leagues and cup draws). This is NOT pulled from a live source - sports data sites are blocked from this environment (same issue as BBC Sport). League membership changes every season, so club staff should review/update this list at the start of each season and after cup draws.",
+  "teams": [
+    "Kelty Hearts",
+    "Annan Athletic",
+    "Stirling Albion",
+    "Elgin City",
+    "Forfar Athletic",
+    "Stranraer",
+    "Bonnyrigg Rose",
+    "Albion Rovers",
+    "East Fife",
+    "Edinburgh City",
+    "Dumbarton",
+    "Brora Rangers",
+    "Queen's Park",
+    "Buckie Thistle",
+    "Fraserburgh",
+    "The Spartans",
+    "Civil Service Strollers",
+    "Spartans"
+  ]
+}
